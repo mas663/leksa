@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/auth/actions";
 import { redirect } from "next/navigation";
+import { getCardCounts } from "@/lib/cards";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -12,6 +13,7 @@ export default async function HomePage() {
   if (!user) redirect("/login");
 
   const displayName = user.email?.split("@")[0] ?? "Pelajar";
+  const { total, due, byBox } = await getCardCounts();
 
   return (
     <div className="min-h-screen bg-field">
@@ -49,22 +51,53 @@ export default async function HomePage() {
         <div className="rounded-2xl bg-card border border-line p-6">
           <div className="flex items-baseline gap-2 mb-1">
             <span className="font-mono text-5xl font-bold text-ink tabular-nums">
-              0
+              {due}
             </span>
             <span className="font-sans text-base text-muted">
               kartu siap diulang
             </span>
           </div>
           <p className="font-sans text-sm text-ink-soft mb-5 leading-relaxed">
-            Belum ada kartu jatuh tempo. Tambah kata baru untuk mulai belajar.
+            {due === 0
+              ? total === 0
+                ? "Belum ada kartu. Tambah kata baru untuk mulai belajar."
+                : "Semua kartu sudah diulang. Kembali lagi nanti."
+              : `Ada ${due} kartu yang perlu diulang hari ini.`}
           </p>
-          <button
-            disabled
-            aria-disabled="true"
-            className="w-full rounded-xl bg-cool/30 px-4 py-3 font-sans text-sm font-semibold text-white/60 cursor-not-allowed"
+          {due > 0 ? (
+            <Link
+              href="/study"
+              className="block w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool/90 focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition-colors"
+            >
+              Mulai Belajar
+            </Link>
+          ) : (
+            <button
+              disabled
+              aria-disabled="true"
+              className="w-full rounded-xl bg-cool/30 px-4 py-3 font-sans text-sm font-semibold text-white/60 cursor-not-allowed"
+            >
+              Mulai Belajar
+            </button>
+          )}
+        </div>
+
+        {/* Ringkasan koleksi */}
+        <div className="rounded-2xl bg-card border border-line px-6 py-5 flex items-center justify-between">
+          <div>
+            <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.15em] mb-0.5">
+              Total kartu
+            </p>
+            <p className="font-mono text-3xl font-bold text-ink tabular-nums">
+              {total}
+            </p>
+          </div>
+          <Link
+            href="/cards"
+            className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
           >
-            Mulai Belajar
-          </button>
+            Kelola →
+          </Link>
         </div>
 
         {/* Sebaran box Leitner */}
@@ -73,16 +106,26 @@ export default async function HomePage() {
             Sebaran Box Leitner
           </p>
           <div className="flex gap-2 items-end">
-            {[1, 2, 3, 4, 5].map((box) => (
-              <div key={box} className="flex-1 flex flex-col items-center gap-1.5">
-                <div className="w-full h-12 rounded-lg bg-field border border-line flex items-center justify-center">
-                  <span className="font-mono text-sm font-bold text-muted">0</span>
+            {[1, 2, 3, 4, 5].map((box) => {
+              const count = byBox[box] ?? 0;
+              const maxCount = Math.max(...Object.values(byBox), 1);
+              const heightPct = total === 0 ? 0 : Math.round((count / maxCount) * 100);
+              return (
+                <div key={box} className="flex-1 flex flex-col items-center gap-1.5">
+                  <div
+                    className="w-full rounded-lg bg-field border border-line flex items-center justify-center"
+                    style={{ height: `${Math.max(heightPct * 0.72 + 28, 48)}px` }}
+                  >
+                    <span className="font-mono text-sm font-bold text-muted tabular-nums">
+                      {count}
+                    </span>
+                  </div>
+                  <span className="font-mono text-[0.625rem] text-muted">
+                    {box}
+                  </span>
                 </div>
-                <span className="font-mono text-[0.625rem] text-muted">
-                  {box}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
