@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+:root {
+  --bg-field:      #122A2E;
+  --bg-field-2:    #183A3F;
+  --surface-card:  #FAFCFB;
+  --ink:           #0C1F22;
+  --ink-soft:      #44595C;
+  --on-field:      #DCEAEA;
+  --muted:         #7C9598;
+  --accent-cool:   #36C2B4;
+  --accent-reward: #F2A23C;
+  --danger:        #E26D5A;
+  --line:          rgba(220,234,234,0.12);
+}
+
+@theme inline {
+  --color-bg-field:      var(--bg-field);
+  --color-bg-field-2:    var(--bg-field-2);
+  --color-surface-card:  var(--surface-card);
+  --color-ink:           var(--ink);
+  --color-ink-soft:      var(--ink-soft);
+  --color-on-field:      var(--on-field);
+  --color-muted:         var(--muted);
+  --color-accent-cool:   var(--accent-cool);
+  --color-accent-reward: var(--accent-reward);
+  --color-danger:        var(--danger);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background: var(--bg-field);
+  color: var(--on-field);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
