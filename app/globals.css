@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* ─── Sumber kebenaran: token desain dari spec section 13.2 ─────────────── */
 :root {
   --bg-field:      #122A2E;
   --bg-field-2:    #183A3F;
@@ -11,32 +12,43 @@
   --accent-cool:   #36C2B4;
   --accent-reward: #F2A23C;
   --danger:        #E26D5A;
-  --line:          rgba(220,234,234,0.12);
+  --line:          rgba(220, 234, 234, 0.12);
 }
 
+/* ─── Peta token → Tailwind v4 utilities ───────────────────────────────── */
+/* Warna: bg-field, bg-panel, bg-card, text-ink, text-cool, dsb.           */
+/* Font:  font-sans (heading/UI), font-serif (prosa), font-mono (data/IPA)  */
 @theme inline {
-  --color-bg-field:      var(--bg-field);
-  --color-bg-field-2:    var(--bg-field-2);
-  --color-surface-card:  var(--surface-card);
-  --color-ink:           var(--ink);
-  --color-ink-soft:      var(--ink-soft);
-  --color-on-field:      var(--on-field);
-  --color-muted:         var(--muted);
-  --color-accent-cool:   var(--accent-cool);
-  --color-accent-reward: var(--accent-reward);
-  --color-danger:        var(--danger);
+  /* Warna */
+  --color-field:    var(--bg-field);
+  --color-panel:    var(--bg-field-2);
+  --color-card:     var(--surface-card);
+  --color-ink:      var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-on-field: var(--on-field);
+  --color-muted:    var(--muted);
+  --color-cool:     var(--accent-cool);
+  --color-reward:   var(--accent-reward);
+  --color-danger:   var(--danger);
+  --color-line:     var(--line);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Font (spec 13.3) */
+  --font-sans:  var(--font-space-grotesk), system-ui, sans-serif;
+  --font-serif: var(--font-newsreader), Georgia, serif;
+  --font-mono:  var(--font-space-mono), ui-monospace, monospace;
 }
 
+/* ─── Aksesibilitas gerak ───────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
 }
 
+/* ─── Base ──────────────────────────────────────────────────────────────── */
 body {
   background: var(--bg-field);
   color: var(--on-field);

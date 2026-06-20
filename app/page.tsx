@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/auth/actions";
 import { redirect } from "next/navigation";
@@ -8,35 +9,108 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    redirect("/login");
-  }
+  if (!user) redirect("/login");
+
+  const displayName = user.email?.split("@")[0] ?? "Pelajar";
 
   return (
-    <main className="min-h-screen bg-[--bg-field] p-6">
-      <header className="max-w-2xl mx-auto flex items-center justify-between mb-12">
-        <h1 className="text-xl font-bold text-[--on-field]">Leksa</h1>
-        <form>
-          <button
-            type="submit"
-            formAction={logout}
-            className="text-sm text-[--muted] hover:text-[--on-field] focus:outline-none focus:underline transition-colors"
-          >
-            Keluar
-          </button>
-        </form>
+    <div className="min-h-screen bg-field">
+      {/* Header */}
+      <header className="border-b border-line px-6 py-4">
+        <div className="max-w-xl mx-auto flex items-center justify-between">
+          <span className="font-sans text-lg font-bold text-on-field tracking-tight">
+            Leksa
+          </span>
+          <form>
+            <button
+              type="submit"
+              formAction={logout}
+              className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-muted hover:text-on-field focus:outline-none focus:underline transition-colors"
+            >
+              Keluar
+            </button>
+          </form>
+        </div>
       </header>
 
-      <div className="max-w-2xl mx-auto">
-        <p className="text-[--muted] text-sm mb-1">Selamat datang,</p>
-        <p className="text-[--on-field] font-medium mb-8 truncate">{user.email}</p>
-
-        <div className="rounded-xl border border-[--line] bg-[--bg-field-2] p-6 text-center">
-          <p className="text-[--muted] text-sm">
-            Belum ada kartu. Tambahkan kata pertamamu untuk mulai belajar.
+      <main className="max-w-xl mx-auto px-6 py-10 space-y-4">
+        {/* Salam */}
+        <div className="pb-2">
+          <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.15em] mb-1">
+            Selamat datang,
           </p>
+          <h1 className="font-sans text-2xl font-semibold text-on-field">
+            {displayName}
+          </h1>
         </div>
-      </div>
-    </main>
+
+        {/* Panel kartu jatuh tempo — CTA utama */}
+        <div className="rounded-2xl bg-panel border border-line p-6">
+          <div className="flex items-baseline gap-2 mb-1">
+            <span className="font-mono text-5xl font-bold text-on-field tabular-nums">
+              0
+            </span>
+            <span className="font-sans text-base text-muted">
+              kartu siap diulang
+            </span>
+          </div>
+          <p className="font-sans text-sm text-muted mb-5 leading-relaxed">
+            Belum ada kartu jatuh tempo. Tambah kata baru untuk mulai belajar.
+          </p>
+          <button
+            disabled
+            aria-disabled="true"
+            className="w-full rounded-xl bg-cool/15 px-4 py-3 font-sans text-sm font-semibold text-cool/40 cursor-not-allowed"
+          >
+            Mulai Belajar
+          </button>
+        </div>
+
+        {/* Sebaran box Leitner */}
+        <div className="rounded-2xl bg-panel border border-line p-5">
+          <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.15em] mb-4">
+            Sebaran Box Leitner
+          </p>
+          <div className="flex gap-2 items-end">
+            {[1, 2, 3, 4, 5].map((box) => (
+              <div key={box} className="flex-1 flex flex-col items-center gap-1.5">
+                <div className="w-full h-10 rounded-lg bg-field border border-line" />
+                <span className="font-mono text-[0.625rem] text-muted">
+                  {box}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Aksi sekunder */}
+        <div className="grid grid-cols-3 gap-3">
+          <Link
+            href="/add"
+            className="rounded-xl bg-panel border border-line px-3 py-4 text-center hover:border-cool/40 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
+          >
+            <span className="font-sans text-sm font-medium text-on-field group-hover:text-cool transition-colors">
+              Tambah kata
+            </span>
+          </Link>
+          <Link
+            href="/quiz"
+            className="rounded-xl bg-panel border border-line px-3 py-4 text-center hover:border-cool/40 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
+          >
+            <span className="font-sans text-sm font-medium text-on-field group-hover:text-cool transition-colors">
+              Kuis
+            </span>
+          </Link>
+          <Link
+            href="/cards"
+            className="rounded-xl bg-panel border border-line px-3 py-4 text-center hover:border-cool/40 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
+          >
+            <span className="font-sans text-sm font-medium text-on-field group-hover:text-cool transition-colors">
+              Kelola kartu
+            </span>
+          </Link>
+        </div>
+      </main>
+    </div>
   );
 }
