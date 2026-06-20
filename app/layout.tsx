@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Newsreader, Space_Mono } from "next/font/google";
 import "./globals.css";
+import BfcacheRefresh from "@/components/BfcacheRefresh";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -40,6 +41,7 @@ export default function RootLayout({
       className={`${spaceGrotesk.variable} ${newsreader.variable} ${spaceMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <BfcacheRefresh />
         {children}
       </body>
     </html>
