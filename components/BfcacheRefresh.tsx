@@ -10,7 +10,6 @@ export default function BfcacheRefresh() {
     // Real bfcache restore (navigasi ke situs luar lalu back).
     // persisted === true hanya untuk kasus ini.
     const handlePageShow = (e: PageTransitionEvent) => {
-      console.log("[pageshow]", e.persisted);
       if (e.persisted) router.refresh();
     };
 
@@ -18,7 +17,6 @@ export default function BfcacheRefresh() {
     // popstate terpicu saat back/forward tapi TIDAK saat pushState —
     // sehingga aman dipakai tanpa infinite loop.
     const handlePopState = () => {
-      console.log("[popstate] router.refresh()");
       router.refresh();
     };
 

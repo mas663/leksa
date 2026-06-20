@@ -67,12 +67,9 @@ Skema JSON wajib (kembalikan persis ini, tanpa kunci tambahan):
     }
 
     const geminiData = await geminiRes.json();
-    console.log("[/api/generate] raw Gemini response:", JSON.stringify(geminiData, null, 2));
 
     let rawText: string =
       geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-
-    console.log("[/api/generate] extracted text:", rawText);
 
     // Clean markdown fences defensively
     rawText = rawText
@@ -82,7 +79,6 @@ Skema JSON wajib (kembalikan persis ini, tanpa kunci tambahan):
       .trim();
 
     const parsed = JSON.parse(rawText);
-    console.log("[/api/generate] parsed result:", parsed);
     return NextResponse.json(parsed);
   } catch (err) {
     console.error("Generate error:", err);
