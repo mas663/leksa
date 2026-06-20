@@ -1,0 +1,645 @@
+"use client";
+
+import { useState, useTransition, useMemo, useEffect, useRef } from "react";
+import type { Card } from "@/lib/cards";
+import { editCardAction, regenCardAction, deleteCardAction } from "./actions";
+
+const INPUT =
+  "w-full rounded-lg border border-line bg-field px-4 py-2.5 font-sans text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-cool transition-shadow";
+const LABEL =
+  "block font-mono text-[0.625rem] font-bold uppercase tracking-[0.15em] text-ink mb-1.5";
+
+interface Fields {
+  word: string;
+  translation: string;
+  partOfSpeech: string;
+  exampleEN: string;
+  exampleID: string;
+  grammarNote: string;
+}
+
+function cardToFields(card: Card): Fields {
+  return {
+    word: card.word,
+    translation: card.translation ?? "",
+    partOfSpeech: card.part_of_speech ?? "",
+    exampleEN: card.example_en ?? "",
+    exampleID: card.example_id ?? "",
+    grammarNote: card.grammar_note ?? "",
+  };
+}
+
+function speak(word: string) {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = "en-US";
+  window.speechSynthesis.speak(u);
+}
+
+function IconSpeak() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+      <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+    </svg>
+  );
+}
+
+function IconEdit() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="3 6 5 6 21 6" />
+      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+      <path d="M10 11v6M14 11v6" />
+      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    </svg>
+  );
+}
+
+function Spinner() {
+  return (
+    <svg
+      className="animate-spin"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+      <path d="M12 2a10 10 0 0 1 10 10" />
+    </svg>
+  );
+}
+
+function SourceBadge({ source }: { source: "ai" | "manual" }) {
+  return (
+    <span
+      className={`inline-block font-mono text-[0.5625rem] leading-none px-1.5 py-0.5 rounded font-bold uppercase tracking-[0.08em] ${
+        source === "ai"
+          ? "bg-cool/10 text-cool"
+          : "bg-ink/8 text-ink-soft"
+      }`}
+    >
+      {source === "ai" ? "AI" : "Manual"}
+    </span>
+  );
+}
+
+interface EditDialogProps {
+  card: Card;
+  fields: Fields;
+  isPending: boolean;
+  onChange: (field: keyof Fields) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  onSave: () => void;
+  onClose: () => void;
+}
+
+function EditDialog({ card, fields, isPending, onChange, onSave, onClose }: EditDialogProps) {
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    firstInputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-ink/30 backdrop-blur-sm p-4 overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Edit kartu: ${card.word}`}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="w-full max-w-lg my-8 rounded-2xl bg-card border border-line p-6 shadow-xl space-y-4">
+        <div className="flex items-center justify-between mb-1">
+          <h2 className="font-sans text-lg font-semibold text-ink">Edit Kartu</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-muted hover:text-ink focus:outline-none focus:ring-2 focus:ring-cool rounded-lg p-1 transition-colors"
+            aria-label="Tutup"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        <div>
+          <label htmlFor="edit-word" className={LABEL}>Kata (Inggris)</label>
+          <input
+            ref={firstInputRef}
+            id="edit-word"
+            type="text"
+            required
+            value={fields.word}
+            onChange={onChange("word")}
+            className={INPUT}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="edit-translation" className={LABEL}>Terjemahan</label>
+          <input
+            id="edit-translation"
+            type="text"
+            value={fields.translation}
+            onChange={onChange("translation")}
+            placeholder="mis. fana, tidak abadi"
+            className={INPUT}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="edit-pos" className={LABEL}>Kelas kata</label>
+          <input
+            id="edit-pos"
+            type="text"
+            value={fields.partOfSpeech}
+            onChange={onChange("partOfSpeech")}
+            placeholder="mis. adjective"
+            className={INPUT}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="edit-ex-en" className={LABEL}>Contoh kalimat (Inggris)</label>
+          <textarea
+            id="edit-ex-en"
+            rows={2}
+            value={fields.exampleEN}
+            onChange={onChange("exampleEN")}
+            placeholder="mis. The beauty of cherry blossoms is ephemeral."
+            className={`${INPUT} resize-none`}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="edit-ex-id" className={LABEL}>Contoh kalimat (Indonesia)</label>
+          <textarea
+            id="edit-ex-id"
+            rows={2}
+            value={fields.exampleID}
+            onChange={onChange("exampleID")}
+            placeholder="mis. Keindahan bunga sakura itu fana."
+            className={`${INPUT} resize-none`}
+          />
+        </div>
+
+        <div>
+          <label htmlFor="edit-grammar" className={LABEL}>Catatan grammar</label>
+          <textarea
+            id="edit-grammar"
+            rows={2}
+            value={fields.grammarNote}
+            onChange={onChange("grammarNote")}
+            placeholder="mis. Digunakan sebagai predikatif atau atributif."
+            className={`${INPUT} resize-none`}
+          />
+        </div>
+
+        <p className="font-mono text-[0.5625rem] text-muted">
+          Menyimpan perubahan akan menandai kartu ini sebagai <strong className="text-ink-soft">Manual</strong>.
+        </p>
+
+        <div className="flex gap-3 pt-1">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-line bg-field px-4 py-3 font-sans text-sm font-medium text-ink-soft hover:text-ink hover:border-ink/20 focus:outline-none focus:ring-2 focus:ring-cool transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={onSave}
+            disabled={!fields.word.trim() || isPending}
+            className="flex-1 rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-cool/90 focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {isPending ? "Menyimpan…" : "Simpan"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface ConfirmDialogProps {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  confirmClass?: string;
+  isPending: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}
+
+function ConfirmDialog({
+  title,
+  message,
+  confirmLabel,
+  confirmClass = "bg-danger hover:bg-danger/90 focus:ring-danger",
+  isPending,
+  onConfirm,
+  onClose,
+}: ConfirmDialogProps) {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-ink/30 backdrop-blur-sm p-4"
+      role="alertdialog"
+      aria-modal="true"
+      aria-label={title}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="w-full max-w-sm rounded-2xl bg-card border border-line p-6 shadow-xl space-y-4">
+        <h2 className="font-sans text-base font-semibold text-ink">{title}</h2>
+        <p className="font-sans text-sm text-ink-soft leading-relaxed">{message}</p>
+        <div className="flex gap-3 pt-1">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-xl border border-line bg-field px-4 py-3 font-sans text-sm font-medium text-ink-soft hover:text-ink hover:border-ink/20 focus:outline-none focus:ring-2 focus:ring-cool transition-colors"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isPending}
+            className={`flex-1 rounded-xl px-4 py-3 font-sans text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${confirmClass}`}
+          >
+            {isPending ? "Memproses…" : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface CardRowProps {
+  card: Card;
+  isRegenLoading: boolean;
+  onSpeak: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onRegen: () => void;
+}
+
+function CardRow({ card, isRegenLoading, onSpeak, onEdit, onDelete, onRegen }: CardRowProps) {
+  return (
+    <div className="py-4 flex items-start gap-3">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline gap-2 flex-wrap">
+          <span className="font-sans text-base font-semibold text-ink">{card.word}</span>
+          {card.part_of_speech && (
+            <span className="font-mono text-[0.5625rem] text-muted uppercase tracking-[0.06em] shrink-0">
+              {card.part_of_speech}
+            </span>
+          )}
+        </div>
+        {card.translation && (
+          <p className="font-sans text-sm text-ink-soft mt-0.5 leading-snug">{card.translation}</p>
+        )}
+        <div className="flex items-center gap-2 mt-2 flex-wrap">
+          <span className="font-mono text-[0.5625rem] text-muted tabular-nums">
+            Box {card.box}
+          </span>
+          <span className="text-line select-none">·</span>
+          <SourceBadge source={card.source} />
+          <button
+            type="button"
+            onClick={onRegen}
+            disabled={isRegenLoading}
+            className="font-mono text-[0.5625rem] text-cool hover:underline focus:outline-none focus:underline disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          >
+            {isRegenLoading ? (
+              <>
+                <Spinner />
+                <span>Memuat…</span>
+              </>
+            ) : (
+              "↻ Generate ulang"
+            )}
+          </button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-0.5 shrink-0">
+        <button
+          type="button"
+          onClick={onSpeak}
+          title={`Ucapkan "${card.word}"`}
+          aria-label={`Ucapkan "${card.word}"`}
+          className="p-2 rounded-lg text-muted hover:text-cool hover:bg-cool/8 focus:outline-none focus:ring-2 focus:ring-cool transition-colors"
+        >
+          <IconSpeak />
+        </button>
+        <button
+          type="button"
+          onClick={onEdit}
+          title="Edit kartu"
+          aria-label={`Edit kartu ${card.word}`}
+          className="p-2 rounded-lg text-muted hover:text-ink hover:bg-ink/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors"
+        >
+          <IconEdit />
+        </button>
+        <button
+          type="button"
+          onClick={onDelete}
+          title="Hapus kartu"
+          aria-label={`Hapus kartu ${card.word}`}
+          className="p-2 rounded-lg text-muted hover:text-danger hover:bg-danger/8 focus:outline-none focus:ring-2 focus:ring-danger transition-colors"
+        >
+          <IconTrash />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function CardsClient({ initialCards }: { initialCards: Card[] }) {
+  const [cards, setCards] = useState<Card[]>(initialCards);
+  const [search, setSearch] = useState("");
+
+  // Edit dialog
+  const [editCard, setEditCard] = useState<Card | null>(null);
+  const [editFields, setEditFields] = useState<Fields>({
+    word: "", translation: "", partOfSpeech: "", exampleEN: "", exampleID: "", grammarNote: "",
+  });
+
+  // Delete confirm
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Generate ulang confirm (for manual source cards)
+  const [regenTarget, setRegenTarget] = useState<Card | null>(null);
+
+  // Per-card regen loading
+  const [regenLoadingId, setRegenLoadingId] = useState<string | null>(null);
+  const [regenError, setRegenError] = useState<string | null>(null);
+
+  const [isPending, startTransition] = useTransition();
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return cards;
+    return cards.filter(
+      (c) =>
+        c.word.toLowerCase().includes(q) ||
+        (c.translation?.toLowerCase().includes(q) ?? false)
+    );
+  }, [cards, search]);
+
+  function openEdit(card: Card) {
+    setEditCard(card);
+    setEditFields(cardToFields(card));
+  }
+
+  function closeEdit() {
+    setEditCard(null);
+  }
+
+  function handleEditChange(field: keyof Fields) {
+    return (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setEditFields((prev) => ({ ...prev, [field]: e.target.value }));
+    };
+  }
+
+  function handleSaveEdit() {
+    if (!editCard || !editFields.word.trim()) return;
+    const id = editCard.id;
+    startTransition(async () => {
+      const updated = await editCardAction(id, {
+        word: editFields.word.trim(),
+        translation: editFields.translation || null,
+        part_of_speech: editFields.partOfSpeech || null,
+        example_en: editFields.exampleEN || null,
+        example_id: editFields.exampleID || null,
+        grammar_note: editFields.grammarNote || null,
+      });
+      setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+      closeEdit();
+    });
+  }
+
+  function handleDelete() {
+    if (!deleteId) return;
+    const id = deleteId;
+    startTransition(async () => {
+      await deleteCardAction(id);
+      setCards((prev) => prev.filter((c) => c.id !== id));
+      setDeleteId(null);
+    });
+  }
+
+  function handleRegenClick(card: Card) {
+    setRegenError(null);
+    if (card.source === "manual") {
+      setRegenTarget(card);
+    } else {
+      doRegen(card);
+    }
+  }
+
+  async function doRegen(card: Card) {
+    setRegenTarget(null);
+    setRegenLoadingId(card.id);
+    setRegenError(null);
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word: card.word }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRegenError(data.error ?? "Gagal generate ulang. Coba lagi.");
+        setRegenLoadingId(null);
+        return;
+      }
+      startTransition(async () => {
+        const updated = await regenCardAction(card.id, {
+          word: card.word,
+          translation: data.translation ?? null,
+          part_of_speech: data.partOfSpeech ?? null,
+          example_en: data.exampleEN ?? null,
+          example_id: data.exampleID ?? null,
+          grammar_note: data.grammarNote ?? null,
+        });
+        setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+        setRegenLoadingId(null);
+      });
+    } catch {
+      setRegenError("Koneksi bermasalah. Coba lagi.");
+      setRegenLoadingId(null);
+    }
+  }
+
+  return (
+    <>
+      {/* Regen error banner */}
+      {regenError && (
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border border-danger/20 bg-danger/5 px-4 py-3 flex items-start justify-between gap-3"
+        >
+          <p className="font-sans text-sm text-danger">{regenError}</p>
+          <button
+            type="button"
+            onClick={() => setRegenError(null)}
+            className="text-danger/60 hover:text-danger focus:outline-none shrink-0"
+            aria-label="Tutup pesan error"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      {/* Search */}
+      <div className="relative mb-2">
+        <svg
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted pointer-events-none"
+          width="15"
+          height="15"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cari kata atau terjemahan…"
+          className="w-full rounded-xl border border-line bg-card pl-10 pr-4 py-3 font-sans text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-cool transition-shadow"
+          aria-label="Cari kartu"
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch("")}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted hover:text-ink focus:outline-none"
+            aria-label="Hapus pencarian"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        )}
+      </div>
+
+      {/* Result count */}
+      <p className="font-mono text-[0.5625rem] text-muted uppercase tracking-[0.12em] mb-1 px-1">
+        {search
+          ? `${filtered.length} dari ${cards.length} kartu`
+          : `${cards.length} kartu`}
+      </p>
+
+      {/* Card list */}
+      <div className="rounded-2xl bg-card border border-line divide-y divide-line overflow-hidden">
+        {filtered.length === 0 ? (
+          <div className="px-5 py-12 text-center">
+            {cards.length === 0 ? (
+              <>
+                <p className="font-sans text-sm text-ink-soft">Belum ada kartu.</p>
+                <p className="font-mono text-[0.5625rem] text-muted mt-1 uppercase tracking-widest">
+                  Tambah kata pertamamu dari halaman Tambah Kata.
+                </p>
+              </>
+            ) : (
+              <p className="font-sans text-sm text-ink-soft">
+                Tidak ada kartu yang cocok dengan &ldquo;{search}&rdquo;.
+              </p>
+            )}
+          </div>
+        ) : (
+          filtered.map((card) => (
+            <div key={card.id} className="px-5">
+              <CardRow
+                card={card}
+                isRegenLoading={regenLoadingId === card.id}
+                onSpeak={() => speak(card.word)}
+                onEdit={() => openEdit(card)}
+                onDelete={() => setDeleteId(card.id)}
+                onRegen={() => handleRegenClick(card)}
+              />
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Edit dialog */}
+      {editCard && (
+        <EditDialog
+          card={editCard}
+          fields={editFields}
+          isPending={isPending}
+          onChange={handleEditChange}
+          onSave={handleSaveEdit}
+          onClose={closeEdit}
+        />
+      )}
+
+      {/* Delete confirm */}
+      {deleteId && (
+        <ConfirmDialog
+          title="Hapus kartu?"
+          message="Yakin ingin menghapus kartu ini? Tindakan ini tidak dapat dibatalkan."
+          confirmLabel="Hapus"
+          confirmClass="bg-danger hover:bg-danger/90 focus:ring-danger"
+          isPending={isPending}
+          onConfirm={handleDelete}
+          onClose={() => setDeleteId(null)}
+        />
+      )}
+
+      {/* Generate ulang confirm (manual cards) */}
+      {regenTarget && (
+        <ConfirmDialog
+          title="Generate ulang?"
+          message="Kartu ini sudah diedit manual. Generate ulang akan menimpa perubahanmu — lanjutkan?"
+          confirmLabel="Ya, generate ulang"
+          confirmClass="bg-cool hover:bg-cool/90 focus:ring-cool"
+          isPending={false}
+          onConfirm={() => doRegen(regenTarget)}
+          onClose={() => setRegenTarget(null)}
+        />
+      )}
+    </>
+  );
+}
