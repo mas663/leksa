@@ -1,18 +1,17 @@
 @import "tailwindcss";
 
-/* ─── Sumber kebenaran: token desain dari spec section 13.2 ─────────────── */
+/* ─── Sumber kebenaran: token desain (light mode) ──────────────────────── */
 :root {
-  --bg-field:      #122A2E;
-  --bg-field-2:    #183A3F;
-  --surface-card:  #FAFCFB;
-  --ink:           #0C1F22;
-  --ink-soft:      #44595C;
-  --on-field:      #DCEAEA;
-  --muted:         #7C9598;
-  --accent-cool:   #36C2B4;
-  --accent-reward: #F2A23C;
-  --danger:        #E26D5A;
-  --line:          rgba(220, 234, 234, 0.12);
+  --bg-field:      #F6F8F7;              /* kanvas utama, putih kehijauan lembut */
+  --bg-field-2:    #ECF1EF;              /* panel/elevasi rendah */
+  --surface-card:  #FFFFFF;              /* permukaan kartu/form */
+  --ink:           #122A2E;              /* teks utama */
+  --ink-soft:      #4A6164;              /* teks sekunder */
+  --muted:         #7C9598;              /* caption/label tersier */
+  --accent-cool:   #1AA395;             /* aksi interaktif/primer */
+  --accent-reward: #E08A1E;             /* HANYA momen keberhasilan */
+  --danger:        #C95A42;             /* error/hapus, dipakai hemat */
+  --line:          rgba(18, 42, 46, 0.10); /* garis pemisah halus */
 }
 
 /* ─── Peta token → Tailwind v4 utilities ───────────────────────────────── */
@@ -25,7 +24,6 @@
   --color-card:     var(--surface-card);
   --color-ink:      var(--ink);
   --color-ink-soft: var(--ink-soft);
-  --color-on-field: var(--on-field);
   --color-muted:    var(--muted);
   --color-cool:     var(--accent-cool);
   --color-reward:   var(--accent-reward);
@@ -51,6 +49,6 @@
 /* ─── Base ──────────────────────────────────────────────────────────────── */
 body {
   background: var(--bg-field);
-  color: var(--on-field);
+  color: var(--ink);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
