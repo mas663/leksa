@@ -389,7 +389,7 @@ function CardRow({ card, isRegenLoading, isArchiveLoading, onSpeak, onEdit, onDe
               : null}
           </p>
         )}
-        <div className="flex items-center gap-2 mt-2 flex-wrap">
+        <div className="flex items-center gap-x-2 gap-y-2.5 mt-2 flex-wrap">
           <span className="font-mono text-[0.5625rem] text-muted tabular-nums">
             Box {card.box}
             <span className="text-muted/60">
