@@ -39,3 +39,17 @@ export async function deleteCardAction(id: string): Promise<void> {
   revalidatePath("/cards");
   revalidatePath("/");
 }
+
+export async function archiveCardAction(id: string): Promise<Card> {
+  const card = await updateCard(id, { is_active: false });
+  revalidatePath("/cards");
+  revalidatePath("/");
+  return card;
+}
+
+export async function activateCardAction(id: string): Promise<Card> {
+  const card = await updateCard(id, { is_active: true });
+  revalidatePath("/cards");
+  revalidatePath("/");
+  return card;
+}

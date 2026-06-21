@@ -4,7 +4,7 @@ import { useState, useTransition, useMemo, useEffect, useRef } from "react";
 import type { Card, WordForms } from "@/lib/cards";
 import { BOX_INTERVALS } from "@/lib/leitner";
 import Spinner from "@/components/Spinner";
-import { editCardAction, regenCardAction, deleteCardAction } from "./actions";
+import { editCardAction, regenCardAction, deleteCardAction, archiveCardAction, activateCardAction } from "./actions";
 
 const INPUT =
   "w-full rounded-lg border border-line bg-field px-4 py-2.5 font-sans text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-cool transition-shadow";
@@ -69,6 +69,45 @@ function IconTrash() {
   );
 }
 
+function IconArchive() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="3" width="20" height="5" rx="1" />
+      <path d="M4 8v12a1 1 0 001 1h14a1 1 0 001-1V8" />
+      <line x1="10" y1="13" x2="14" y2="13" />
+    </svg>
+  );
+}
+
+function IconActivate() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="3" width="20" height="5" rx="1" />
+      <path d="M4 8v12a1 1 0 001 1h14a1 1 0 001-1V8" />
+      <polyline points="9 14 12 11 15 14" />
+      <line x1="12" y1="11" x2="12" y2="17" />
+    </svg>
+  );
+}
+
+function IconChevron({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={`transition-transform duration-200 ${open ? "rotate-180" : "rotate-0"}`}
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
 
 function SourceBadge({ source }: { source: "ai" | "manual" }) {
   return (
@@ -317,13 +356,16 @@ function ConfirmDialog({
 interface CardRowProps {
   card: Card;
   isRegenLoading: boolean;
+  isArchiveLoading: boolean;
   onSpeak: () => void;
   onEdit: () => void;
   onDelete: () => void;
   onRegen: () => void;
+  onArchive: () => void;
+  onActivate: () => void;
 }
 
-function CardRow({ card, isRegenLoading, onSpeak, onEdit, onDelete, onRegen }: CardRowProps) {
+function CardRow({ card, isRegenLoading, isArchiveLoading, onSpeak, onEdit, onDelete, onRegen, onArchive, onActivate }: CardRowProps) {
   return (
     <div className="py-4 flex items-start gap-3">
       <div className="min-w-0 flex-1">
@@ -357,21 +399,23 @@ function CardRow({ card, isRegenLoading, onSpeak, onEdit, onDelete, onRegen }: C
           </span>
           <span className="text-line select-none">·</span>
           <SourceBadge source={card.source} />
-          <button
-            type="button"
-            onClick={onRegen}
-            disabled={isRegenLoading}
-            className="font-mono text-[0.5625rem] text-cool hover:underline focus:outline-none focus:underline disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-          >
-            {isRegenLoading ? (
-              <>
-                <Spinner />
-                <span>Memuat…</span>
-              </>
-            ) : (
-              "↻ Generate ulang"
-            )}
-          </button>
+          {card.is_active && (
+            <button
+              type="button"
+              onClick={onRegen}
+              disabled={isRegenLoading}
+              className="font-mono text-[0.5625rem] text-cool hover:underline focus:outline-none focus:underline disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+            >
+              {isRegenLoading ? (
+                <>
+                  <Spinner />
+                  <span>Memuat…</span>
+                </>
+              ) : (
+                "↻ Generate ulang"
+              )}
+            </button>
+          )}
         </div>
       </div>
 
@@ -385,25 +429,74 @@ function CardRow({ card, isRegenLoading, onSpeak, onEdit, onDelete, onRegen }: C
         >
           <IconSpeak />
         </button>
-        <button
-          type="button"
-          onClick={onEdit}
-          title="Edit kartu"
-          aria-label={`Edit kartu ${card.word}`}
-          className="p-2 rounded-lg text-muted hover:text-ink hover:bg-ink/5 active:scale-95 active:bg-ink/10 focus:outline-none focus:ring-2 focus:ring-cool transition"
-        >
-          <IconEdit />
-        </button>
-        <button
-          type="button"
-          onClick={onDelete}
-          title="Hapus kartu"
-          aria-label={`Hapus kartu ${card.word}`}
-          className="p-2 rounded-lg text-muted hover:text-danger hover:bg-danger/8 active:scale-95 active:bg-danger/15 focus:outline-none focus:ring-2 focus:ring-danger transition"
-        >
-          <IconTrash />
-        </button>
+        {card.is_active ? (
+          <>
+            <button
+              type="button"
+              onClick={onEdit}
+              title="Edit kartu"
+              aria-label={`Edit kartu ${card.word}`}
+              className="p-2 rounded-lg text-muted hover:text-ink hover:bg-ink/5 active:scale-95 active:bg-ink/10 focus:outline-none focus:ring-2 focus:ring-cool transition"
+            >
+              <IconEdit />
+            </button>
+            <button
+              type="button"
+              onClick={onArchive}
+              disabled={isArchiveLoading}
+              title="Arsipkan kartu"
+              aria-label={`Arsipkan kartu ${card.word}`}
+              className="p-2 rounded-lg text-muted hover:text-ink-soft hover:bg-ink/5 active:scale-95 active:bg-ink/10 focus:outline-none focus:ring-2 focus:ring-cool transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isArchiveLoading ? <Spinner /> : <IconArchive />}
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              title="Hapus kartu"
+              aria-label={`Hapus kartu ${card.word}`}
+              className="p-2 rounded-lg text-muted hover:text-danger hover:bg-danger/8 active:scale-95 active:bg-danger/15 focus:outline-none focus:ring-2 focus:ring-danger transition"
+            >
+              <IconTrash />
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={onActivate}
+              disabled={isArchiveLoading}
+              title="Aktifkan lagi"
+              aria-label={`Aktifkan lagi kartu ${card.word}`}
+              className="p-2 rounded-lg text-muted hover:text-cool hover:bg-cool/8 active:scale-95 active:bg-cool/15 focus:outline-none focus:ring-2 focus:ring-cool transition disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isArchiveLoading ? <Spinner /> : <IconActivate />}
+            </button>
+            <button
+              type="button"
+              onClick={onDelete}
+              title="Hapus kartu"
+              aria-label={`Hapus kartu ${card.word}`}
+              className="p-2 rounded-lg text-muted hover:text-danger hover:bg-danger/8 active:scale-95 active:bg-danger/15 focus:outline-none focus:ring-2 focus:ring-danger transition"
+            >
+              <IconTrash />
+            </button>
+          </>
+        )}
       </div>
+    </div>
+  );
+}
+
+function SectionHeader({ label, count }: { label: string; count: number }) {
+  return (
+    <div className="flex items-center justify-between px-5 py-3 bg-field border-b border-line">
+      <p className="font-mono text-[0.5625rem] text-muted uppercase tracking-[0.12em]">
+        {label}
+      </p>
+      <span className="font-mono text-[0.5625rem] text-muted tabular-nums">
+        {count} kartu
+      </span>
     </div>
   );
 }
@@ -411,6 +504,7 @@ function CardRow({ card, isRegenLoading, onSpeak, onEdit, onDelete, onRegen }: C
 export default function CardsClient({ initialCards }: { initialCards: Card[] }) {
   const [cards, setCards] = useState<Card[]>(initialCards);
   const [search, setSearch] = useState("");
+  const [archivedOpen, setArchivedOpen] = useState(false);
 
   // Edit dialog
   const [editCard, setEditCard] = useState<Card | null>(null);
@@ -424,9 +518,10 @@ export default function CardsClient({ initialCards }: { initialCards: Card[] }) 
   // Generate ulang confirm (for manual source cards)
   const [regenTarget, setRegenTarget] = useState<Card | null>(null);
 
-  // Per-card regen loading
+  // Per-card loading states
   const [regenLoadingId, setRegenLoadingId] = useState<string | null>(null);
   const [regenError, setRegenError] = useState<string | null>(null);
+  const [archiveLoadingId, setArchiveLoadingId] = useState<string | null>(null);
 
   const [isPending, startTransition] = useTransition();
 
@@ -439,6 +534,14 @@ export default function CardsClient({ initialCards }: { initialCards: Card[] }) 
         (c.translation?.toLowerCase().includes(q) ?? false)
     );
   }, [cards, search]);
+
+  const activeCards = useMemo(() => filtered.filter((c) => c.is_active), [filtered]);
+  const archivedCards = useMemo(() => filtered.filter((c) => !c.is_active), [filtered]);
+
+  // Auto-expand archived section when search reveals archived results
+  useEffect(() => {
+    if (search && archivedCards.length > 0) setArchivedOpen(true);
+  }, [search, archivedCards.length]);
 
   function openEdit(card: Card) {
     setEditCard(card);
@@ -527,6 +630,27 @@ export default function CardsClient({ initialCards }: { initialCards: Card[] }) 
     }
   }
 
+  function handleArchive(card: Card) {
+    setArchiveLoadingId(card.id);
+    startTransition(async () => {
+      const updated = await archiveCardAction(card.id);
+      setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+      setArchiveLoadingId(null);
+    });
+  }
+
+  function handleActivate(card: Card) {
+    setArchiveLoadingId(card.id);
+    startTransition(async () => {
+      const updated = await activateCardAction(card.id);
+      setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+      setArchiveLoadingId(null);
+    });
+  }
+
+  const totalActive = cards.filter((c) => c.is_active).length;
+  const totalArchived = cards.filter((c) => !c.is_active).length;
+
   return (
     <>
       {/* Regen error banner */}
@@ -588,42 +712,108 @@ export default function CardsClient({ initialCards }: { initialCards: Card[] }) 
       </div>
 
       {/* Result count */}
-      <p className="font-mono text-[0.5625rem] text-muted uppercase tracking-[0.12em] mb-1 px-1">
+      <p className="font-mono text-[0.5625rem] text-muted uppercase tracking-[0.12em] mb-3 px-1">
         {search
           ? `${filtered.length} dari ${cards.length} kartu`
-          : `${cards.length} kartu`}
+          : `${totalActive} aktif · ${totalArchived} diarsipkan`}
       </p>
 
-      {/* Card list */}
-      <div className="rounded-2xl bg-card border border-line divide-y divide-line overflow-hidden">
-        {filtered.length === 0 ? (
-          <div className="px-5 py-12 text-center">
-            {cards.length === 0 ? (
-              <>
-                <p className="font-sans text-sm text-ink-soft">Belum ada kartu.</p>
-                <p className="font-mono text-[0.5625rem] text-muted mt-1 uppercase tracking-widest">
-                  Tambah kata pertamamu dari halaman Tambah Kata.
+      {/* Section: Sedang Dipelajari */}
+      <div className="rounded-2xl bg-card border border-line overflow-hidden mb-3">
+        <SectionHeader label="Sedang Dipelajari" count={activeCards.length} />
+        <div className="divide-y divide-line">
+          {activeCards.length === 0 ? (
+            <div className="px-5 py-10 text-center">
+              {cards.length === 0 ? (
+                <>
+                  <p className="font-sans text-sm text-ink-soft">Belum ada kartu.</p>
+                  <p className="font-mono text-[0.5625rem] text-muted mt-1 uppercase tracking-widest">
+                    Tambah kata pertamamu dari halaman Tambah Kata.
+                  </p>
+                </>
+              ) : search ? (
+                <p className="font-sans text-sm text-ink-soft">
+                  Tidak ada kartu aktif yang cocok dengan &ldquo;{search}&rdquo;.
                 </p>
-              </>
+              ) : (
+                <p className="font-sans text-sm text-ink-soft">
+                  Semua kartu sedang diarsipkan.
+                </p>
+              )}
+            </div>
+          ) : (
+            activeCards.map((card) => (
+              <div key={card.id} className="px-5">
+                <CardRow
+                  card={card}
+                  isRegenLoading={regenLoadingId === card.id}
+                  isArchiveLoading={archiveLoadingId === card.id}
+                  onSpeak={() => speak(card.word)}
+                  onEdit={() => openEdit(card)}
+                  onDelete={() => setDeleteId(card.id)}
+                  onRegen={() => handleRegenClick(card)}
+                  onArchive={() => handleArchive(card)}
+                  onActivate={() => handleActivate(card)}
+                />
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Section: Diarsipkan */}
+      <div className="rounded-2xl bg-card border border-line overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setArchivedOpen((o) => !o)}
+          className="w-full flex items-center justify-between px-5 py-3 bg-field hover:bg-field/80 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-cool transition-colors"
+          aria-expanded={archivedOpen}
+        >
+          <p className="font-mono text-[0.5625rem] text-muted uppercase tracking-[0.12em]">
+            Diarsipkan (Sudah Hafal)
+          </p>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[0.5625rem] text-muted tabular-nums">
+              {archivedCards.length} kartu
+            </span>
+            <span className="text-muted">
+              <IconChevron open={archivedOpen} />
+            </span>
+          </div>
+        </button>
+
+        {archivedOpen && (
+          <div className="divide-y divide-line border-t border-line">
+            {archivedCards.length === 0 ? (
+              <div className="px-5 py-10 text-center">
+                {search ? (
+                  <p className="font-sans text-sm text-ink-soft">
+                    Tidak ada kartu arsip yang cocok dengan &ldquo;{search}&rdquo;.
+                  </p>
+                ) : (
+                  <p className="font-sans text-sm text-ink-soft">
+                    Belum ada kartu yang diarsipkan.
+                  </p>
+                )}
+              </div>
             ) : (
-              <p className="font-sans text-sm text-ink-soft">
-                Tidak ada kartu yang cocok dengan &ldquo;{search}&rdquo;.
-              </p>
+              archivedCards.map((card) => (
+                <div key={card.id} className="px-5 opacity-75">
+                  <CardRow
+                    card={card}
+                    isRegenLoading={regenLoadingId === card.id}
+                    isArchiveLoading={archiveLoadingId === card.id}
+                    onSpeak={() => speak(card.word)}
+                    onEdit={() => openEdit(card)}
+                    onDelete={() => setDeleteId(card.id)}
+                    onRegen={() => handleRegenClick(card)}
+                    onArchive={() => handleArchive(card)}
+                    onActivate={() => handleActivate(card)}
+                  />
+                </div>
+              ))
             )}
           </div>
-        ) : (
-          filtered.map((card) => (
-            <div key={card.id} className="px-5">
-              <CardRow
-                card={card}
-                isRegenLoading={regenLoadingId === card.id}
-                onSpeak={() => speak(card.word)}
-                onEdit={() => openEdit(card)}
-                onDelete={() => setDeleteId(card.id)}
-                onRegen={() => handleRegenClick(card)}
-              />
-            </div>
-          ))
         )}
       </div>
 

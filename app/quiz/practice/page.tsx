@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/auth/actions";
 import { redirect } from "next/navigation";
-import { getCards } from "@/lib/cards";
+import { getActiveCards } from "@/lib/cards";
 import QuizClient from "../QuizClient";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export default async function PracticeQuizPage() {
 
   if (!user) redirect("/login");
 
-  const cards = await getCards();
+  const cards = await getActiveCards();
   const totalCards = cards.length;
 
   if (totalCards === 0) {
@@ -105,7 +105,7 @@ export default async function PracticeQuizPage() {
         <div className="pb-6">
           <div className="flex items-center gap-2 mb-1">
             <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.15em]">
-              {totalCards} kartu · semua koleksi
+              {totalCards} kartu aktif · semua koleksi
             </p>
             <span className="inline-flex items-center rounded-full border border-ink/15 px-2 py-0.5 font-mono text-[0.5625rem] text-ink-soft uppercase tracking-[0.08em]">
               Mode Latihan

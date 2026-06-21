@@ -16,7 +16,7 @@ export default async function HomePage() {
   if (!user) redirect("/login");
 
   const displayName = user.email?.split("@")[0] ?? "Pelajar";
-  const [{ total, due, byBox }, previewCards] = await Promise.all([
+  const [{ total, due, archived, byBox }, previewCards] = await Promise.all([
     getCardCounts(),
     getCardsForBoxPreview(),
   ]);
@@ -103,6 +103,11 @@ export default async function HomePage() {
             <p className="font-mono text-3xl font-bold text-ink tabular-nums">
               {total}
             </p>
+            {archived > 0 && (
+              <p className="font-mono text-[0.5625rem] text-muted mt-0.5">
+                {archived} diarsipkan
+              </p>
+            )}
           </div>
           <Link
             href="/cards"
