@@ -52,8 +52,9 @@ export default function CardForm() {
   const showAllFields = mode === "manual" || aiGenerated;
 
   const posLower = fields.partOfSpeech.toLowerCase().trim();
-  const showVerbForms = /\bverb\b/.test(posLower);
-  const showNounForms = /\bnoun\b/.test(posLower);
+  const wordIsPhrase = fields.word.trim().includes(" ");
+  const showVerbForms = !wordIsPhrase && /\bverb\b/.test(posLower);
+  const showNounForms = !wordIsPhrase && /\bnoun\b/.test(posLower);
 
   const handleGenerate = async () => {
     const trimmedWord = fields.word.trim();

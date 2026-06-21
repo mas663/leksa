@@ -243,7 +243,7 @@ function EditDialog({ card, fields, isPending, onChange, onSave, onClose }: Edit
           />
         </div>
 
-        {card.word_forms && (
+        {card.word_forms && !card.word.includes(" ") && (
           <div className="rounded-lg border border-line bg-field px-4 py-3 space-y-1">
             <p className={LABEL}>Bentuk kata</p>
             {card.word_forms.type === "verb" ? (
@@ -380,7 +380,7 @@ function CardRow({ card, isRegenLoading, isArchiveLoading, onSpeak, onEdit, onDe
         {card.translation && (
           <p className="font-sans text-sm text-ink-soft mt-0.5 leading-snug">{card.translation}</p>
         )}
-        {card.word_forms && (
+        {card.word_forms && !card.word.includes(" ") && (
           <p className="font-mono text-[0.5625rem] text-muted mt-0.5">
             {card.word_forms.type === "verb"
               ? `Bentuk: ${card.word_forms.v1} · ${card.word_forms.v2} · ${card.word_forms.v3}`

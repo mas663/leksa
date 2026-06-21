@@ -72,9 +72,10 @@ Aturan wajib:
 3. Kapitalkan huruf PERTAMA saja dari kata/frasa final. Contoh: "run"→"Run", "give up"→"Give up".
 4. Field "word" dalam respons = bentuk final (sudah dilemmatisasi jika perlu, sudah dikapitalisasi).
 5. Untuk field "wordForms":
-   - Jika partOfSpeech adalah "verb": kembalikan {"type":"verb","v1":"...","v2":"...","v3":"..."} (V1=infinitif, V2=past tense, V3=past participle), SEMUA huruf kecil.
-   - Jika partOfSpeech adalah "noun": kembalikan {"type":"noun","singular":"...","plural":"..."}, SEMUA huruf kecil.
-   - Untuk adjective, adverb, frasa, atau kelas kata lain: kembalikan null.
+   - ${isPhrase ? 'Input ini FRASA — kembalikan wordForms: null. DILARANG mengisi konjugasi/bentuk apapun untuk frasa.' : 'Input ini satu kata — ikuti aturan berikut:'}
+   - ${isPhrase ? '' : 'Jika partOfSpeech adalah "verb": kembalikan {"type":"verb","v1":"...","v2":"...","v3":"..."} (V1=infinitif, V2=past tense, V3=past participle), SEMUA huruf kecil.'}
+   - ${isPhrase ? '' : 'Jika partOfSpeech adalah "noun": kembalikan {"type":"noun","singular":"...","plural":"..."}, SEMUA huruf kecil.'}
+   - ${isPhrase ? '' : 'Untuk adjective, adverb, atau kelas kata lain: kembalikan null.'}
 6. Gunakan makna paling umum. Contoh kalimat harus natural. Catatan grammar harus akurat.
 
 Kembalikan HANYA objek JSON valid tanpa teks lain, tanpa markdown, tanpa \`\`\`.
