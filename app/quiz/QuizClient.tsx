@@ -43,12 +43,6 @@ export default function QuizClient({ cards, mode, totalCards }: QuizClientProps)
           >
             + Tambah kata pertama
           </Link>
-          <Link
-            href="/"
-            className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-muted hover:text-ink focus:outline-none focus:underline"
-          >
-            ← Beranda
-          </Link>
         </div>
       );
     }
@@ -76,12 +70,6 @@ export default function QuizClient({ cards, mode, totalCards }: QuizClientProps)
             Belajar Flashcard
           </Link>
         </div>
-        <Link
-          href="/"
-          className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-muted hover:text-ink focus:outline-none focus:underline"
-        >
-          ← Kembali ke Beranda
-        </Link>
       </div>
     );
   }

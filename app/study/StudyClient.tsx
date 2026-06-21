@@ -64,12 +64,6 @@ export default function StudyClient({ cards, mode = "normal" }: StudyClientProps
             Latihan Kuis
           </Link>
         </div>
-        <Link
-          href="/"
-          className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-muted hover:text-ink focus:outline-none focus:underline"
-        >
-          ← Kembali ke Beranda
-        </Link>
       </div>
     );
   }
