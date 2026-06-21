@@ -38,7 +38,7 @@ export default function QuizClient({ cards, mode, totalCards }: QuizClientProps)
             Tambah kata baru untuk mulai belajar.
           </p>
           <Link
-            href="/add"
+            href="/add?from=/quiz"
             className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
           >
             + Tambah kata pertama
@@ -62,16 +62,16 @@ export default function QuizClient({ cards, mode, totalCards }: QuizClientProps)
           Semua kartu sudah diulang hari ini. Coba latihan bebas atau kembali
           lagi nanti.
         </p>
-        <div className="flex gap-4 mt-2">
+        <div className="flex flex-col items-stretch w-full max-w-65 gap-3 mt-2">
           <Link
             href="/quiz/practice"
-            className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
+            className="rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-field transition"
           >
-            Latihan Bebas →
+            Latihan Bebas
           </Link>
           <Link
-            href="/study"
-            className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
+            href="/study/practice"
+            className="rounded-xl border border-cool/40 bg-cool/5 px-4 py-3 font-sans text-sm font-semibold text-cool text-center hover:bg-cool/10 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-field transition"
           >
             Belajar Flashcard
           </Link>
@@ -80,7 +80,7 @@ export default function QuizClient({ cards, mode, totalCards }: QuizClientProps)
           href="/"
           className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-muted hover:text-ink focus:outline-none focus:underline"
         >
-          ← Beranda
+          ← Kembali ke Beranda
         </Link>
       </div>
     );

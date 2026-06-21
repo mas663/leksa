@@ -50,7 +50,7 @@ export default async function PracticeQuizPage() {
               Tambah kata baru untuk mulai belajar.
             </p>
             <Link
-              href="/add"
+              href="/add?from=/quiz/practice"
               className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
             >
               + Tambah kata pertama

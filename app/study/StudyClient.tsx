@@ -73,23 +73,52 @@ export default function StudyClient({ cards, mode = "normal" }: StudyClientProps
   }, [currentIndex]);
 
   if (cards.length === 0) {
+    if (mode === "review") {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+          <p className="font-sans text-base text-ink-soft">
+            Tidak ada kartu aktif untuk ditinjau.
+          </p>
+          <p className="font-sans text-sm text-muted">
+            Tambah kata baru untuk mulai belajar.
+          </p>
+          <Link
+            href="/add?from=/study/practice"
+            className="mt-2 font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
+          >
+            + Tambah kata
+          </Link>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
         <p className="font-sans text-base text-ink-soft">
-          {mode === "review"
-            ? "Tidak ada kartu aktif untuk ditinjau."
-            : "Tidak ada kartu jatuh tempo."}
+          Tidak ada kartu jatuh tempo.
         </p>
         <p className="font-sans text-sm text-muted">
-          {mode === "review"
-            ? "Tambah kata baru untuk mulai belajar."
-            : "Kembali lagi nanti setelah interval berlalu."}
+          Kembali lagi nanti setelah interval berlalu.
         </p>
+        <div className="flex flex-col items-stretch w-full max-w-65 gap-3 mt-2">
+          <Link
+            href="/study/practice"
+            className="rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-field transition"
+          >
+            Tinjau Semua Kartu
+          </Link>
+          <Link
+            href="/quiz/practice"
+            className="rounded-xl border border-cool/40 bg-cool/5 px-4 py-3 font-sans text-sm font-semibold text-cool text-center hover:bg-cool/10 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-field transition"
+          >
+            Latihan Kuis
+          </Link>
+        </div>
         <Link
-          href={mode === "review" ? "/add" : "/"}
-          className="mt-2 font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
+          href="/"
+          className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-muted hover:text-ink focus:outline-none focus:underline"
         >
-          {mode === "review" ? "+ Tambah kata" : "← Beranda"}
+          ← Kembali ke Beranda
         </Link>
       </div>
     );

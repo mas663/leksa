@@ -4,13 +4,26 @@ import { logout } from "@/app/auth/actions";
 import { redirect } from "next/navigation";
 import CardForm from "@/components/CardForm";
 
-export default async function AddPage() {
+const ALLOWED_BACK: Record<string, string> = {
+  "/cards": "/cards",
+  "/quiz": "/quiz",
+  "/quiz/practice": "/quiz/practice",
+};
+
+export default async function AddPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ from?: string }>;
+}) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) redirect("/login");
+
+  const { from } = await searchParams;
+  const backHref = (from && ALLOWED_BACK[from]) ?? "/";
 
   return (
     <div className="min-h-screen bg-field">
@@ -38,7 +51,7 @@ export default async function AddPage() {
       <main className="max-w-xl mx-auto px-6 py-10">
         <div className="pb-6">
           <Link
-            href="/"
+            href={backHref}
             className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline mb-4 inline-block"
           >
             ← Kembali

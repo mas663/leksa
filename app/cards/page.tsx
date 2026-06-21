@@ -48,11 +48,36 @@ export default async function CardsPage() {
           >
             ← Kembali
           </Link>
-          <h1 className="font-sans text-2xl font-semibold text-ink">
-            Kelola Kartu
-          </h1>
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="font-sans text-2xl font-semibold text-ink">
+              Kelola Kartu
+            </h1>
+            <Link
+              href="/add?from=/cards"
+              className="rounded-xl border border-line bg-card px-3 py-2.5 flex items-center gap-1.5 hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group shrink-0"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-muted group-hover:text-cool transition-colors"
+                aria-hidden="true"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <span className="font-sans text-sm font-medium text-ink-soft group-hover:text-cool transition-colors">
+                Tambah Kata
+              </span>
+            </Link>
+          </div>
           <p className="font-sans text-sm text-ink-soft mt-1">
-            Semua kartu kamu — cari, edit, hapus, atau generate ulang.
+            Semua kartu kamu — tambah, cari, edit, hapus, atau generate ulang.
           </p>
         </div>
 
