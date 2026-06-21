@@ -96,6 +96,18 @@ export async function getDueCards(): Promise<Card[]> {
   return data ?? [];
 }
 
+/** Cek apakah kata sudah ada di kartu user (case-insensitive). Dipakai untuk pencegahan duplikat. */
+export async function cardExistsByWord(word: string): Promise<boolean> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("cards")
+    .select("id")
+    .ilike("word", word.trim())
+    .limit(1)
+    .maybeSingle();
+  return !!data;
+}
+
 export async function addCard(card: NewCard): Promise<Card> {
   const supabase = await createClient();
   const {

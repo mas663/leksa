@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import Spinner from "@/components/Spinner";
-import { createCard } from "@/app/add/actions";
+import { createCard, checkCardExists } from "@/app/add/actions";
 import type { WordForms } from "@/lib/cards";
 
 type Mode = "ai" | "manual";
@@ -47,6 +48,8 @@ export default function CardForm() {
   const [aiGenerated, setAiGenerated] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [genError, setGenError] = useState<string | null>(null);
+  const [genDuplicate, setGenDuplicate] = useState(false);
+  const [saveDuplicate, setSaveDuplicate] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const showAllFields = mode === "manual" || aiGenerated;
@@ -62,6 +65,7 @@ export default function CardForm() {
 
     setIsGenerating(true);
     setGenError(null);
+    setGenDuplicate(false);
 
     try {
       const res = await fetch("/api/generate", {
@@ -72,7 +76,11 @@ export default function CardForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        setGenError(data.error ?? "Gagal generate. Coba isi manual.");
+        if (res.status === 409) {
+          setGenDuplicate(true);
+        } else {
+          setGenError(data.error ?? "Gagal generate. Coba isi manual.");
+        }
         return;
       }
 
@@ -94,8 +102,16 @@ export default function CardForm() {
     }
   };
 
+  const handleWordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFields((prev) => ({ ...prev, word: e.target.value }));
+    if (aiGenerated) setSource("manual");
+    setGenError(null);
+    setGenDuplicate(false);
+    setSaveDuplicate(false);
+  };
+
   const updateField =
-    (field: Exclude<keyof Fields, "partOfSpeech" | "wordForms">) =>
+    (field: Exclude<keyof Fields, "word" | "partOfSpeech" | "wordForms">) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFields((prev) => ({ ...prev, [field]: e.target.value }));
       if (aiGenerated) setSource("manual");
@@ -159,12 +175,20 @@ export default function CardForm() {
   // Guard: in AI mode, only allow save after generation has run
   const canSave = mode === "manual" || aiGenerated;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canSave) return;
 
     // Capitalize word as fallback (in case blur didn't fire)
     const finalWord = capitalizeFirst(fields.word);
+
+    // Pre-save duplicate check (defense in depth)
+    setSaveDuplicate(false);
+    const exists = await checkCardExists(finalWord);
+    if (exists) {
+      setSaveDuplicate(true);
+      return;
+    }
 
     // Trim word form values and discard if all empty
     let finalWordForms: WordForms = null;
@@ -188,8 +212,9 @@ export default function CardForm() {
     fd.set("grammar_note", fields.grammarNote);
     fd.set("word_forms", finalWordForms ? JSON.stringify(finalWordForms) : "");
     fd.set("source", source);
-    startTransition(() => {
-      createCard(fd);
+    startTransition(async () => {
+      const result = await createCard(fd);
+      if (result?.error === "duplicate") setSaveDuplicate(true);
     });
   };
 
@@ -238,7 +263,7 @@ export default function CardForm() {
           required
           autoFocus
           value={fields.word}
-          onChange={updateField("word")}
+          onChange={handleWordChange}
           onBlur={handleWordBlur}
           onKeyDown={handleWordKeyDown}
           placeholder="mis. ephemeral"
@@ -258,6 +283,23 @@ export default function CardForm() {
             {isGenerating && <Spinner />}
             {isGenerating ? "Membuat kartu…" : "Generate (AI)"}
           </button>
+
+          {genDuplicate && (
+            <div
+              role="alert"
+              className="rounded-lg bg-danger/5 border border-danger/20 px-4 py-3 space-y-2"
+            >
+              <p className="font-sans text-sm text-danger">
+                Kata ini sudah ada di kartu kamu.
+              </p>
+              <Link
+                href="/cards"
+                className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
+              >
+                Lihat di Kelola Kartu →
+              </Link>
+            </div>
+          )}
 
           {genError && (
             <div
@@ -468,6 +510,23 @@ export default function CardForm() {
                 </button>
               </div>
 
+              {genDuplicate && (
+                <div
+                  role="alert"
+                  className="rounded-lg bg-danger/5 border border-danger/20 px-4 py-3 space-y-2"
+                >
+                  <p className="font-sans text-sm text-danger">
+                    Kata ini sudah ada di kartu kamu.
+                  </p>
+                  <Link
+                    href="/cards"
+                    className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
+                  >
+                    Lihat di Kelola Kartu →
+                  </Link>
+                </div>
+              )}
+
               {genError && (
                 <p
                   role="alert"
@@ -477,6 +536,23 @@ export default function CardForm() {
                 </p>
               )}
             </>
+          )}
+
+          {saveDuplicate && (
+            <div
+              role="alert"
+              className="rounded-lg bg-danger/5 border border-danger/20 px-4 py-3 space-y-2"
+            >
+              <p className="font-sans text-sm text-danger">
+                Kata ini sudah ada di kartu kamu.
+              </p>
+              <Link
+                href="/cards"
+                className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
+              >
+                Lihat di Kelola Kartu →
+              </Link>
+            </div>
           )}
 
           <button

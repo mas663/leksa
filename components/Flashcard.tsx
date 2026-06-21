@@ -144,6 +144,18 @@ export default function Flashcard({ card, isFlipped, onFlip }: FlashcardProps) {
               &ldquo;{card.example_id}&rdquo;
             </p>
           )}
+          {card.word_forms && !card.word.includes(" ") && (
+            <div className="border-t border-line pt-3 mt-1 flex flex-col gap-1">
+              <span className="font-mono text-[0.6875rem] text-muted uppercase tracking-[0.12em]">
+                {card.word_forms.type === "verb" ? "V1 · V2 · V3" : "Tunggal · Jamak"}
+              </span>
+              <p className="font-mono text-sm text-ink-soft">
+                {card.word_forms.type === "verb"
+                  ? `${card.word_forms.v1} · ${card.word_forms.v2} · ${card.word_forms.v3}`
+                  : `${card.word_forms.singular} · ${card.word_forms.plural}`}
+              </p>
+            </div>
+          )}
           {card.grammar_note && (
             <p className="font-mono text-xs text-muted leading-relaxed border-t border-line pt-3 mt-1">
               {card.grammar_note}

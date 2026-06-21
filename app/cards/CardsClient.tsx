@@ -245,7 +245,9 @@ function EditDialog({ card, fields, isPending, onChange, onSave, onClose }: Edit
 
         {card.word_forms && !card.word.includes(" ") && (
           <div className="rounded-lg border border-line bg-field px-4 py-3 space-y-1">
-            <p className={LABEL}>Bentuk kata</p>
+            <p className={LABEL}>
+              {card.word_forms.type === "verb" ? "V1 · V2 · V3" : "Tunggal · Jamak"}
+            </p>
             {card.word_forms.type === "verb" ? (
               <p className="font-mono text-sm text-ink-soft">
                 {card.word_forms.v1}
@@ -253,14 +255,12 @@ function EditDialog({ card, fields, isPending, onChange, onSave, onClose }: Edit
                 {card.word_forms.v2}
                 <span className="text-muted"> · </span>
                 {card.word_forms.v3}
-                <span className="font-mono text-[0.5625rem] text-muted ml-2">V1 · V2 · V3</span>
               </p>
             ) : card.word_forms.type === "noun" ? (
               <p className="font-mono text-sm text-ink-soft">
                 {card.word_forms.singular}
                 <span className="text-muted"> · </span>
                 {card.word_forms.plural}
-                <span className="font-mono text-[0.5625rem] text-muted ml-2">tunggal · jamak</span>
               </p>
             ) : null}
           </div>

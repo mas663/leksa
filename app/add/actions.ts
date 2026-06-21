@@ -1,12 +1,21 @@
 "use server";
 
-import { addCard } from "@/lib/cards";
+import { addCard, cardExistsByWord } from "@/lib/cards";
 import type { WordForms } from "@/lib/cards";
 import { redirect } from "next/navigation";
 
-export async function createCard(formData: FormData) {
+export async function checkCardExists(word: string): Promise<boolean> {
+  return cardExistsByWord(word);
+}
+
+export async function createCard(
+  formData: FormData
+): Promise<{ error: string } | void> {
   const word = (formData.get("word") as string | null)?.trim() ?? "";
-  if (!word) throw new Error("Kata tidak boleh kosong");
+  if (!word) return { error: "Kata tidak boleh kosong" };
+
+  const exists = await cardExistsByWord(word);
+  if (exists) return { error: "duplicate" };
 
   const rawSource = formData.get("source");
   const rawWordForms = (formData.get("word_forms") as string | null) || "";

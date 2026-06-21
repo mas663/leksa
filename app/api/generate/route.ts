@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { cardExistsByWord } from "@/lib/cards";
 
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
@@ -58,6 +59,12 @@ export async function POST(req: NextRequest) {
   }
 
   const input = word.trim();
+
+  const isDuplicate = await cardExistsByWord(input);
+  if (isDuplicate) {
+    return NextResponse.json({ error: "duplicate" }, { status: 409 });
+  }
+
   const isPhrase = input.includes(" ");
 
   const prompt = `Kamu asisten pembuat kartu kosakata bahasa Inggris untuk pelajar Indonesia.
