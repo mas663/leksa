@@ -8,6 +8,7 @@ const ALLOWED_BACK: Record<string, string> = {
   "/cards": "/cards",
   "/quiz": "/quiz",
   "/quiz/practice": "/quiz/practice",
+  "/study": "/study",
 };
 
 export default async function AddPage({

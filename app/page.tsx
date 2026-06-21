@@ -76,11 +76,11 @@ export default async function HomePage() {
                 : "Semua kartu sudah diulang. Kembali lagi nanti."
               : `Ada ${due} kartu yang perlu diulang hari ini.`}
           </p>
-          <div className="flex gap-2">
+          <div>
             {due > 0 ? (
               <Link
                 href="/study"
-                className="flex-1 rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition"
+                className="block w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition"
               >
                 Mulai Belajar
               </Link>
@@ -88,33 +88,10 @@ export default async function HomePage() {
               <button
                 disabled
                 aria-disabled="true"
-                className="flex-1 rounded-xl bg-cool/30 px-4 py-3 font-sans text-sm font-semibold text-white/60 cursor-not-allowed"
+                className="w-full rounded-xl bg-cool/30 px-4 py-3 font-sans text-sm font-semibold text-white/60 cursor-not-allowed"
               >
                 Mulai Belajar
               </button>
-            )}
-            {total > 0 && (
-              <Link
-                href="/study/practice"
-                title="Mode Review — tinjau semua kartu tanpa mengubah jadwal Leitner"
-                aria-label="Mode Review"
-                className="shrink-0 rounded-xl border border-line bg-card px-3 py-3 text-muted hover:text-cool hover:border-cool/40 hover:bg-cool/5 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition flex items-center justify-center"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <polyline points="23 4 23 10 17 10" />
-                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-                </svg>
-              </Link>
             )}
           </div>
         </div>
@@ -142,34 +119,43 @@ export default async function HomePage() {
           </Link>
         </div>
 
-        {/* Sebaran box Leitner */}
-        <LeitnerBoxes byBox={byBox} total={total} boxCards={boxCards} />
-
-        {/* Aksi sekunder */}
-        <div className="grid grid-cols-3 gap-3">
-          <Link
-            href="/add"
-            className="rounded-xl bg-card border border-line px-3 py-4 flex flex-col items-center gap-1.5 hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
-          >
+        {/* Tambah kata — CTA sekunder */}
+        <Link
+          href="/add"
+          className="rounded-2xl bg-card border border-cool/25 px-6 py-5 flex items-center gap-5 hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
+        >
+          <div className="shrink-0 w-11 h-11 rounded-xl bg-cool/10 flex items-center justify-center group-hover:bg-cool/15 transition-colors">
             <svg
-              width="16"
-              height="16"
+              width="18"
+              height="18"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-muted group-hover:text-cool transition-colors"
+              className="text-cool"
               aria-hidden="true"
             >
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            <span className="font-sans text-sm font-medium text-ink-soft group-hover:text-cool transition-colors">
-              Tambah kata
-            </span>
-          </Link>
+          </div>
+          <div>
+            <p className="font-sans text-base font-semibold text-ink group-hover:text-cool transition-colors">
+              Tambah kata baru
+            </p>
+            <p className="font-sans text-sm text-muted leading-relaxed">
+              Perluas koleksi kosakatamu
+            </p>
+          </div>
+        </Link>
+
+        {/* Sebaran box Leitner */}
+        <LeitnerBoxes byBox={byBox} total={total} boxCards={boxCards} />
+
+        {/* Aksi sekunder */}
+        <div className="grid grid-cols-2 gap-3">
           <Link
             href="/quiz"
             className="rounded-xl bg-card border border-line px-3 py-4 flex flex-col items-center gap-1.5 hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"

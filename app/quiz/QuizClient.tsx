@@ -70,7 +70,7 @@ export default function QuizClient({ cards, mode, totalCards }: QuizClientProps)
             Latihan Bebas
           </Link>
           <Link
-            href="/study/practice"
+            href="/study"
             className="rounded-xl border border-cool/40 bg-cool/5 px-4 py-3 font-sans text-sm font-semibold text-cool text-center hover:bg-cool/10 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-field transition"
           >
             Belajar Flashcard
