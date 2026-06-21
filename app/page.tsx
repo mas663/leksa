@@ -76,22 +76,47 @@ export default async function HomePage() {
                 : "Semua kartu sudah diulang. Kembali lagi nanti."
               : `Ada ${due} kartu yang perlu diulang hari ini.`}
           </p>
-          {due > 0 ? (
-            <Link
-              href="/study"
-              className="block w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition"
-            >
-              Mulai Belajar
-            </Link>
-          ) : (
-            <button
-              disabled
-              aria-disabled="true"
-              className="w-full rounded-xl bg-cool/30 px-4 py-3 font-sans text-sm font-semibold text-white/60 cursor-not-allowed"
-            >
-              Mulai Belajar
-            </button>
-          )}
+          <div className="flex gap-2">
+            {due > 0 ? (
+              <Link
+                href="/study"
+                className="flex-1 rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition"
+              >
+                Mulai Belajar
+              </Link>
+            ) : (
+              <button
+                disabled
+                aria-disabled="true"
+                className="flex-1 rounded-xl bg-cool/30 px-4 py-3 font-sans text-sm font-semibold text-white/60 cursor-not-allowed"
+              >
+                Mulai Belajar
+              </button>
+            )}
+            {total > 0 && (
+              <Link
+                href="/study/practice"
+                title="Mode Review — tinjau semua kartu tanpa mengubah jadwal Leitner"
+                aria-label="Mode Review"
+                className="shrink-0 rounded-xl border border-line bg-card px-3 py-3 text-muted hover:text-cool hover:border-cool/40 hover:bg-cool/5 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition flex items-center justify-center"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <polyline points="23 4 23 10 17 10" />
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                </svg>
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Ringkasan koleksi */}
@@ -121,7 +146,7 @@ export default async function HomePage() {
         <LeitnerBoxes byBox={byBox} total={total} boxCards={boxCards} />
 
         {/* Aksi sekunder */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           <Link
             href="/add"
             className="rounded-xl bg-card border border-line px-3 py-4 flex flex-col items-center gap-1.5 hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
@@ -167,33 +192,6 @@ export default async function HomePage() {
             </svg>
             <span className="font-sans text-sm font-medium text-ink-soft group-hover:text-cool transition-colors">
               Kuis
-            </span>
-          </Link>
-          <Link
-            href="/cards"
-            className="rounded-xl bg-card border border-line px-3 py-4 flex flex-col items-center gap-1.5 hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-muted group-hover:text-cool transition-colors"
-              aria-hidden="true"
-            >
-              <line x1="8" y1="6" x2="21" y2="6" />
-              <line x1="8" y1="12" x2="21" y2="12" />
-              <line x1="8" y1="18" x2="21" y2="18" />
-              <line x1="3" y1="6" x2="3.01" y2="6" />
-              <line x1="3" y1="12" x2="3.01" y2="12" />
-              <line x1="3" y1="18" x2="3.01" y2="18" />
-            </svg>
-            <span className="font-sans text-sm font-medium text-ink-soft group-hover:text-cool transition-colors">
-              Kelola kartu
             </span>
           </Link>
           <Link

@@ -10,6 +10,7 @@ import { markKnown, markWrong } from "./actions";
 
 interface StudyClientProps {
   cards: Card[];
+  mode?: "normal" | "review";
 }
 
 function LeitnerPath({ currentBox }: { currentBox: number }) {
@@ -57,7 +58,7 @@ function BoxLabel({ box }: { box: number }) {
   );
 }
 
-export default function StudyClient({ cards }: StudyClientProps) {
+export default function StudyClient({ cards, mode = "normal" }: StudyClientProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [session, setSession] = useState({ known: 0, missed: 0 });
@@ -75,16 +76,20 @@ export default function StudyClient({ cards }: StudyClientProps) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
         <p className="font-sans text-base text-ink-soft">
-          Tidak ada kartu jatuh tempo.
+          {mode === "review"
+            ? "Tidak ada kartu aktif untuk ditinjau."
+            : "Tidak ada kartu jatuh tempo."}
         </p>
         <p className="font-sans text-sm text-muted">
-          Kembali lagi nanti setelah interval berlalu.
+          {mode === "review"
+            ? "Tambah kata baru untuk mulai belajar."
+            : "Kembali lagi nanti setelah interval berlalu."}
         </p>
         <Link
-          href="/"
+          href={mode === "review" ? "/add" : "/"}
           className="mt-2 font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
         >
-          ← Beranda
+          {mode === "review" ? "+ Tambah kata" : "← Beranda"}
         </Link>
       </div>
     );
@@ -103,9 +108,15 @@ export default function StudyClient({ cards }: StudyClientProps) {
           <p className="font-sans text-3xl font-semibold text-ink mb-1">
             Kerja bagus!
           </p>
-          <p className="font-sans text-sm text-ink-soft mb-6 leading-relaxed">
+          <p className="font-sans text-sm text-ink-soft mb-1 leading-relaxed">
             Kamu sudah mengulas {total} kartu dalam sesi ini.
           </p>
+          {mode === "review" && (
+            <p className="font-mono text-[0.5625rem] text-muted mb-5">
+              Jawaban tidak memengaruhi jadwal Leitner kamu.
+            </p>
+          )}
+          {mode === "normal" && <div className="mb-5" />}
 
           <div className="flex gap-6 mb-6">
             <div className="flex-1 rounded-xl bg-cool/8 border border-cool/20 px-4 py-4 text-center">
@@ -141,26 +152,36 @@ export default function StudyClient({ cards }: StudyClientProps) {
 
   function handleKnown() {
     if (isPending) return;
-    const newBox = advanceBox(card.box);
-    setJustKnownBox(newBox);
-    if (card.box < 5 && newBox === 5) {
-      setJustMastered(true);
-      setTimeout(() => setJustMastered(false), 900);
-    }
-    startTransition(async () => {
-      await markKnown(card.id, card.box, card.times_correct);
+    if (mode === "normal") {
+      const newBox = advanceBox(card.box);
+      setJustKnownBox(newBox);
+      if (card.box < 5 && newBox === 5) {
+        setJustMastered(true);
+        setTimeout(() => setJustMastered(false), 900);
+      }
+      startTransition(async () => {
+        await markKnown(card.id, card.box, card.times_correct);
+        setSession((s) => ({ ...s, known: s.known + 1 }));
+        setCurrentIndex((i) => i + 1);
+      });
+    } else {
       setSession((s) => ({ ...s, known: s.known + 1 }));
       setCurrentIndex((i) => i + 1);
-    });
+    }
   }
 
   function handleMissed() {
     if (isPending) return;
-    startTransition(async () => {
-      await markWrong(card.id, card.times_wrong);
+    if (mode === "normal") {
+      startTransition(async () => {
+        await markWrong(card.id, card.times_wrong);
+        setSession((s) => ({ ...s, missed: s.missed + 1 }));
+        setCurrentIndex((i) => i + 1);
+      });
+    } else {
       setSession((s) => ({ ...s, missed: s.missed + 1 }));
       setCurrentIndex((i) => i + 1);
-    });
+    }
   }
 
   return (
@@ -187,7 +208,7 @@ export default function StudyClient({ cards }: StudyClientProps) {
       {/* Kartu */}
       <div
         className={
-          justMastered
+          justMastered && mode === "normal"
             ? "rounded-2xl ring-2 ring-reward transition-all"
             : "rounded-2xl"
         }
@@ -222,13 +243,13 @@ export default function StudyClient({ cards }: StudyClientProps) {
           disabled={isPending}
           className="flex-1 rounded-xl bg-cool px-4 py-3.5 font-sans text-sm font-semibold text-white hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-field transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {isPending && <Spinner />}
-          {isPending ? "Menyimpan…" : "Tahu"}
+          {isPending && mode === "normal" && <Spinner />}
+          {isPending && mode === "normal" ? "Menyimpan…" : "Tahu"}
         </button>
       </div>
 
-      {/* Feedback setelah klik Tahu */}
-      {justKnownBox !== null && (
+      {/* Feedback setelah klik Tahu — hanya di mode normal */}
+      {mode === "normal" && justKnownBox !== null && (
         <p className="font-mono text-[0.5625rem] text-cool text-center tracking-[0.06em]">
           {justKnownBox > card.box
             ? `Naik ke Box ${justKnownBox} — muncul lagi dalam ${BOX_INTERVALS[justKnownBox]} hari`

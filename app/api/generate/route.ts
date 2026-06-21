@@ -4,6 +4,29 @@ import { createClient } from "@/lib/supabase/server";
 const GEMINI_MODEL = "gemini-2.5-flash";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
+type GeminiResult =
+  | { ok: true; data: unknown }
+  | { ok: false; status: number; text: string };
+
+async function callGemini(apiKey: string, prompt: string): Promise<GeminiResult> {
+  const res = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseMimeType: "application/json" },
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    return { ok: false, status: res.status, text };
+  }
+
+  const data = await res.json();
+  return { ok: true, data };
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const {
@@ -60,19 +83,22 @@ Skema JSON wajib (kembalikan persis ini, tanpa kunci tambahan):
 {"word":"...","translation":"...","partOfSpeech":"...","exampleEN":"...","exampleID":"...","grammarNote":"...","wordForms":null_atau_objek}`;
 
   try {
-    const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { responseMimeType: "application/json" },
-      }),
-    });
+    let result = await callGemini(apiKey, prompt);
 
-    if (!geminiRes.ok) {
-      const errText = await geminiRes.text().catch(() => "");
-      console.error("Gemini API error:", geminiRes.status, errText);
-      if (geminiRes.status === 429) {
+    if (!result.ok && [401, 403, 429].includes(result.status)) {
+      const backupKey = process.env.AI_API_KEY_BACKUP;
+      if (backupKey) {
+        console.log(`[generate] Primary key returned ${result.status}, retrying with AI_API_KEY_BACKUP`);
+        result = await callGemini(backupKey, prompt);
+        if (result.ok) {
+          console.log("[generate] Fallback key succeeded");
+        }
+      }
+    }
+
+    if (!result.ok) {
+      console.error("Gemini API error:", result.status, result.text);
+      if (result.status === 429) {
         return NextResponse.json(
           { error: "Kuota AI harian sudah habis, coba lagi nanti atau isi manual." },
           { status: 429 }
@@ -84,8 +110,7 @@ Skema JSON wajib (kembalikan persis ini, tanpa kunci tambahan):
       );
     }
 
-    const geminiData = await geminiRes.json();
-
+    const geminiData = result.data as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
     let rawText: string =
       geminiData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
