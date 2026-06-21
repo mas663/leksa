@@ -116,60 +116,72 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Ringkasan koleksi */}
-        <div className="rounded-2xl bg-card border border-line px-6 py-5 flex items-center justify-between">
-          <div>
-            <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.15em] mb-0.5">
-              Total kartu
-            </p>
-            <p className="font-mono text-3xl font-bold text-ink tabular-nums">
-              {total}
-            </p>
-            {archived > 0 && (
-              <p className="font-mono text-[0.5625rem] text-muted mt-0.5">
-                {archived} diarsipkan
+        {/* Navigasi koleksi — Tambah & Kelola */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Tambah kata — solid cool */}
+          <Link
+            href="/add"
+            className="rounded-2xl bg-cool p-5 flex flex-col justify-between min-h-34 hover:opacity-90 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-field transition"
+          >
+            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-white"
+                aria-hidden="true"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-sans text-base font-semibold text-white leading-snug">
+                Tambah kata
               </p>
-            )}
-          </div>
+              <p className="font-sans text-xs text-white/75 mt-0.5">
+                Perluas koleksimu
+              </p>
+            </div>
+          </Link>
+
+          {/* Kelola kartu — kartu putih standar */}
           <Link
             href="/cards"
-            className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
+            className="rounded-2xl bg-card border border-line p-5 flex flex-col justify-between hover:border-cool/40 hover:bg-cool/5 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-field transition group"
           >
-            Kelola →
+            <div className="w-10 h-10 rounded-full bg-field flex items-center justify-center shrink-0 group-hover:bg-cool/10 transition-colors">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-muted group-hover:text-cool transition-colors"
+                aria-hidden="true"
+              >
+                <rect x="2" y="4" width="20" height="16" rx="2" />
+                <path d="M2 9h20" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-sans text-base font-semibold text-ink leading-snug group-hover:text-cool transition-colors">
+                Kelola kartu
+              </p>
+              <p className="font-mono text-xs text-muted mt-0.5 tabular-nums">
+                {total - archived} kartu aktif
+              </p>
+            </div>
           </Link>
         </div>
-
-        {/* Tambah kata — CTA sekunder */}
-        <Link
-          href="/add"
-          className="rounded-2xl bg-card border border-cool/25 px-6 py-5 flex items-center gap-5 hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
-        >
-          <div className="shrink-0 w-11 h-11 rounded-xl bg-cool/10 flex items-center justify-center group-hover:bg-cool/15 transition-colors">
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-cool"
-              aria-hidden="true"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </div>
-          <div>
-            <p className="font-sans text-base font-semibold text-ink group-hover:text-cool transition-colors">
-              Tambah kata baru
-            </p>
-            <p className="font-sans text-sm text-muted leading-relaxed">
-              Perluas koleksi kosakatamu
-            </p>
-          </div>
-        </Link>
 
         {/* Sebaran box Leitner */}
         <LeitnerBoxes byBox={byBox} total={total} boxCards={boxCards} />
