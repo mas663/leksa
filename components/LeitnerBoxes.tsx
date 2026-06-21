@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { BOX_INTERVALS } from "@/lib/leitner";
 
 interface BoxCard {
   id: string;
@@ -15,11 +16,11 @@ interface LeitnerBoxesProps {
 }
 
 const BOX_DESCRIPTIONS: Record<number, string> = {
-  1: "Paling sering diulang · interval 1 hari",
-  2: "Interval 2 hari",
-  3: "Interval 4 hari",
-  4: "Interval 8 hari",
-  5: "Sudah paling hafal · interval 16 hari",
+  1: `Paling sering diulang · interval ${BOX_INTERVALS[1]} hari`,
+  2: `Interval ${BOX_INTERVALS[2]} hari`,
+  3: `Interval ${BOX_INTERVALS[3]} hari`,
+  4: `Interval ${BOX_INTERVALS[4]} hari`,
+  5: `Sudah paling hafal · interval ${BOX_INTERVALS[5]} hari`,
 };
 
 export default function LeitnerBoxes({ byBox, total, boxCards }: LeitnerBoxesProps) {
@@ -45,6 +46,9 @@ export default function LeitnerBoxes({ byBox, total, boxCards }: LeitnerBoxesPro
           </p>
           <p className="font-sans text-[0.6875rem] text-muted mt-1 leading-snug">
             Box 1 = paling sering diulang &middot; Box 5 = sudah paling kamu hafal
+          </p>
+          <p className="font-sans text-[0.6875rem] text-muted/70 mt-0.5 leading-snug">
+            Kartu baru selalu mulai dari Box 1 dan naik setiap kali kamu jawab benar.
           </p>
         </div>
         <div className="flex gap-2 items-end">

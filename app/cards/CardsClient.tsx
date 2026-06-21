@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useMemo, useEffect, useRef } from "react";
 import type { Card, WordForms } from "@/lib/cards";
+import { BOX_INTERVALS } from "@/lib/leitner";
 import Spinner from "@/components/Spinner";
 import { editCardAction, regenCardAction, deleteCardAction } from "./actions";
 
@@ -349,6 +350,10 @@ function CardRow({ card, isRegenLoading, onSpeak, onEdit, onDelete, onRegen }: C
         <div className="flex items-center gap-2 mt-2 flex-wrap">
           <span className="font-mono text-[0.5625rem] text-muted tabular-nums">
             Box {card.box}
+            <span className="text-muted/60">
+              {" · "}
+              {BOX_INTERVALS[card.box] === 1 ? "ulang besok" : `ulang tiap ${BOX_INTERVALS[card.box]} hari`}
+            </span>
           </span>
           <span className="text-line select-none">·</span>
           <SourceBadge source={card.source} />

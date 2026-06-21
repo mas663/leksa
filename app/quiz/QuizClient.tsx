@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import type { Card } from "@/lib/cards";
-import { advanceBox } from "@/lib/leitner";
+import { advanceBox, BOX_INTERVALS } from "@/lib/leitner";
 import { markCorrect, markIncorrect } from "./actions";
 
 interface QuizClientProps {
@@ -388,7 +388,7 @@ export default function QuizClient({ cards, mode, totalCards }: QuizClientProps)
                 </p>
                 {mode === "normal" && (
                   <p className="font-mono text-[0.6875rem] text-muted mt-0.5">
-                    Box direset ke 1
+                    Box direset ke 1 — muncul lagi besok
                   </p>
                 )}
               </div>
@@ -402,8 +402,8 @@ export default function QuizClient({ cards, mode, totalCards }: QuizClientProps)
                 </p>
                 <p className="font-mono text-[0.6875rem] text-muted mt-0.5">
                   {card.box < 5
-                    ? `Naik ke box ${newBox}`
-                    : "Sudah di box 5 — hafalan terkuat!"}
+                    ? `Naik ke box ${newBox} — muncul lagi dalam ${BOX_INTERVALS[newBox]} hari`
+                    : "Sudah di box 5 — muncul lagi dalam 15 hari"}
                 </p>
               </div>
             )}

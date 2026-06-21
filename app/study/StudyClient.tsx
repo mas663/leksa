@@ -3,7 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import type { Card } from "@/lib/cards";
-import { advanceBox } from "@/lib/leitner";
+import { advanceBox, BOX_INTERVALS } from "@/lib/leitner";
 import Flashcard from "@/components/Flashcard";
 import Spinner from "@/components/Spinner";
 import { markKnown, markWrong } from "./actions";
@@ -49,16 +49,10 @@ function LeitnerPath({ currentBox }: { currentBox: number }) {
 }
 
 function BoxLabel({ box }: { box: number }) {
-  const labels: Record<number, string> = {
-    1: "1 hari",
-    2: "2 hari",
-    3: "4 hari",
-    4: "7 hari",
-    5: "15 hari",
-  };
   return (
     <p className="font-mono text-[0.6875rem] text-muted text-center tracking-[0.08em]">
-      Box {box} — ulang tiap {labels[box] ?? "?"}
+      Box {box} dari 5 · ulang tiap {BOX_INTERVALS[box] ?? 1} hari
+      {box === 5 && <span className="text-reward"> · hafalan terkuat</span>}
     </p>
   );
 }
@@ -68,11 +62,13 @@ export default function StudyClient({ cards }: StudyClientProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [session, setSession] = useState({ known: 0, missed: 0 });
   const [justMastered, setJustMastered] = useState(false);
+  const [justKnownBox, setJustKnownBox] = useState<number | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  // Reset flip saat ganti kartu
+  // Reset flip dan feedback saat ganti kartu
   useEffect(() => {
     setIsFlipped(false);
+    setJustKnownBox(null);
   }, [currentIndex]);
 
   if (cards.length === 0) {
@@ -146,6 +142,7 @@ export default function StudyClient({ cards }: StudyClientProps) {
   function handleKnown() {
     if (isPending) return;
     const newBox = advanceBox(card.box);
+    setJustKnownBox(newBox);
     if (card.box < 5 && newBox === 5) {
       setJustMastered(true);
       setTimeout(() => setJustMastered(false), 900);
@@ -229,6 +226,15 @@ export default function StudyClient({ cards }: StudyClientProps) {
           {isPending ? "Menyimpan…" : "Tahu"}
         </button>
       </div>
+
+      {/* Feedback setelah klik Tahu */}
+      {justKnownBox !== null && (
+        <p className="font-mono text-[0.5625rem] text-cool text-center tracking-[0.06em]">
+          {justKnownBox > card.box
+            ? `Naik ke Box ${justKnownBox} — muncul lagi dalam ${BOX_INTERVALS[justKnownBox]} hari`
+            : "Sudah di Box 5 — hafalan terkuat!"}
+        </p>
+      )}
     </div>
   );
 }
