@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useMemo, useEffect, useRef } from "react";
 import type { Card } from "@/lib/cards";
+import Spinner from "@/components/Spinner";
 import { editCardAction, regenCardAction, deleteCardAction } from "./actions";
 
 const INPUT =
@@ -67,23 +68,6 @@ function IconTrash() {
   );
 }
 
-function Spinner() {
-  return (
-    <svg
-      className="animate-spin"
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      aria-hidden="true"
-    >
-      <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-      <path d="M12 2a10 10 0 0 1 10 10" />
-    </svg>
-  );
-}
 
 function SourceBadge({ source }: { source: "ai" | "manual" }) {
   return (
@@ -137,7 +121,7 @@ function EditDialog({ card, fields, isPending, onChange, onSave, onClose }: Edit
           <button
             type="button"
             onClick={onClose}
-            className="text-muted hover:text-ink focus:outline-none focus:ring-2 focus:ring-cool rounded-lg p-1 transition-colors"
+            className="text-muted hover:text-ink active:scale-90 focus:outline-none focus:ring-2 focus:ring-cool rounded-lg p-1 transition"
             aria-label="Tutup"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
@@ -227,7 +211,7 @@ function EditDialog({ card, fields, isPending, onChange, onSave, onClose }: Edit
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-xl border border-line bg-field px-4 py-3 font-sans text-sm font-medium text-ink-soft hover:text-ink hover:border-ink/20 focus:outline-none focus:ring-2 focus:ring-cool transition-colors"
+            className="flex-1 rounded-xl border border-line bg-field px-4 py-3 font-sans text-sm font-medium text-ink-soft hover:text-ink hover:border-ink/20 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool transition"
           >
             Batal
           </button>
@@ -235,8 +219,9 @@ function EditDialog({ card, fields, isPending, onChange, onSave, onClose }: Edit
             type="button"
             onClick={onSave}
             disabled={!fields.word.trim() || isPending}
-            className="flex-1 rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-cool/90 focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
+            {isPending && <Spinner />}
             {isPending ? "Menyimpan…" : "Simpan"}
           </button>
         </div>
@@ -259,7 +244,7 @@ function ConfirmDialog({
   title,
   message,
   confirmLabel,
-  confirmClass = "bg-danger hover:bg-danger/90 focus:ring-danger",
+  confirmClass = "bg-danger hover:bg-danger-dark focus:ring-danger",
   isPending,
   onConfirm,
   onClose,
@@ -287,7 +272,7 @@ function ConfirmDialog({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-xl border border-line bg-field px-4 py-3 font-sans text-sm font-medium text-ink-soft hover:text-ink hover:border-ink/20 focus:outline-none focus:ring-2 focus:ring-cool transition-colors"
+            className="flex-1 rounded-xl border border-line bg-field px-4 py-3 font-sans text-sm font-medium text-ink-soft hover:text-ink hover:border-ink/20 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool transition"
           >
             Batal
           </button>
@@ -295,7 +280,7 @@ function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={isPending}
-            className={`flex-1 rounded-xl px-4 py-3 font-sans text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${confirmClass}`}
+            className={`flex-1 rounded-xl px-4 py-3 font-sans text-sm font-semibold text-white active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-card transition disabled:opacity-40 disabled:cursor-not-allowed ${confirmClass}`}
           >
             {isPending ? "Memproses…" : confirmLabel}
           </button>
@@ -359,7 +344,7 @@ function CardRow({ card, isRegenLoading, onSpeak, onEdit, onDelete, onRegen }: C
           onClick={onSpeak}
           title={`Ucapkan "${card.word}"`}
           aria-label={`Ucapkan "${card.word}"`}
-          className="p-2 rounded-lg text-muted hover:text-cool hover:bg-cool/8 focus:outline-none focus:ring-2 focus:ring-cool transition-colors"
+          className="p-2 rounded-lg text-muted hover:text-cool hover:bg-cool/8 active:scale-95 active:bg-cool/15 focus:outline-none focus:ring-2 focus:ring-cool transition"
         >
           <IconSpeak />
         </button>
@@ -368,7 +353,7 @@ function CardRow({ card, isRegenLoading, onSpeak, onEdit, onDelete, onRegen }: C
           onClick={onEdit}
           title="Edit kartu"
           aria-label={`Edit kartu ${card.word}`}
-          className="p-2 rounded-lg text-muted hover:text-ink hover:bg-ink/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors"
+          className="p-2 rounded-lg text-muted hover:text-ink hover:bg-ink/5 active:scale-95 active:bg-ink/10 focus:outline-none focus:ring-2 focus:ring-cool transition"
         >
           <IconEdit />
         </button>
@@ -377,7 +362,7 @@ function CardRow({ card, isRegenLoading, onSpeak, onEdit, onDelete, onRegen }: C
           onClick={onDelete}
           title="Hapus kartu"
           aria-label={`Hapus kartu ${card.word}`}
-          className="p-2 rounded-lg text-muted hover:text-danger hover:bg-danger/8 focus:outline-none focus:ring-2 focus:ring-danger transition-colors"
+          className="p-2 rounded-lg text-muted hover:text-danger hover:bg-danger/8 active:scale-95 active:bg-danger/15 focus:outline-none focus:ring-2 focus:ring-danger transition"
         >
           <IconTrash />
         </button>
@@ -621,7 +606,7 @@ export default function CardsClient({ initialCards }: { initialCards: Card[] }) 
           title="Hapus kartu?"
           message="Yakin ingin menghapus kartu ini? Tindakan ini tidak dapat dibatalkan."
           confirmLabel="Hapus"
-          confirmClass="bg-danger hover:bg-danger/90 focus:ring-danger"
+          confirmClass="bg-danger hover:bg-danger-dark focus:ring-danger"
           isPending={isPending}
           onConfirm={handleDelete}
           onClose={() => setDeleteId(null)}
@@ -634,7 +619,7 @@ export default function CardsClient({ initialCards }: { initialCards: Card[] }) 
           title="Generate ulang?"
           message="Kartu ini sudah diedit manual. Generate ulang akan menimpa perubahanmu — lanjutkan?"
           confirmLabel="Ya, generate ulang"
-          confirmClass="bg-cool hover:bg-cool/90 focus:ring-cool"
+          confirmClass="bg-cool hover:bg-cool-dark focus:ring-cool"
           isPending={false}
           onConfirm={() => doRegen(regenTarget)}
           onClose={() => setRegenTarget(null)}

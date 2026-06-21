@@ -79,7 +79,7 @@ export default async function LoginPage({ searchParams }: Props) {
           <button
             type="submit"
             formAction={login}
-            className="w-full rounded-lg bg-cool px-4 py-3.5 font-sans text-sm font-semibold text-white hover:bg-cool/90 focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition-colors"
+            className="w-full rounded-lg bg-cool px-4 py-3.5 font-sans text-sm font-semibold text-white hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition"
           >
             Masuk
           </button>

@@ -97,7 +97,7 @@ export default function QuizClient({ cards }: QuizClientProps) {
 
           <Link
             href="/"
-            className="block w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool/90 focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition-colors"
+            className="block w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition"
           >
             Kembali ke beranda
           </Link>
@@ -225,7 +225,7 @@ export default function QuizClient({ cards }: QuizClientProps) {
               type="button"
               onClick={handleSubmit}
               disabled={isPending || input.trim() === ""}
-              className="rounded-xl bg-cool px-5 py-3 font-sans text-sm font-semibold text-white hover:bg-cool/90 focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="rounded-xl bg-cool px-5 py-3 font-sans text-sm font-semibold text-white hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Periksa
             </button>
@@ -291,7 +291,7 @@ export default function QuizClient({ cards }: QuizClientProps) {
               onClick={handleNext}
               onKeyDown={handleNextKeyDown}
               disabled={isPending}
-              className="w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-cool/90 focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition-colors disabled:opacity-50"
+              className="w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition disabled:opacity-50"
             >
               {isPending
                 ? "Menyimpan…"

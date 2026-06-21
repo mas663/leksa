@@ -19,16 +19,18 @@
 /* Font:  font-sans (heading/UI), font-serif (prosa), font-mono (data/IPA)  */
 @theme inline {
   /* Warna */
-  --color-field:    var(--bg-field);
-  --color-panel:    var(--bg-field-2);
-  --color-card:     var(--surface-card);
-  --color-ink:      var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-muted:    var(--muted);
-  --color-cool:     var(--accent-cool);
-  --color-reward:   var(--accent-reward);
-  --color-danger:   var(--danger);
-  --color-line:     var(--line);
+  --color-field:        var(--bg-field);
+  --color-panel:        var(--bg-field-2);
+  --color-card:         var(--surface-card);
+  --color-ink:          var(--ink);
+  --color-ink-soft:     var(--ink-soft);
+  --color-muted:        var(--muted);
+  --color-cool:         var(--accent-cool);
+  --color-cool-dark:    color-mix(in srgb, var(--accent-cool), black 15%);
+  --color-reward:       var(--accent-reward);
+  --color-danger:       var(--danger);
+  --color-danger-dark:  color-mix(in srgb, var(--danger), black 15%);
+  --color-line:         var(--line);
 
   /* Font (spec 13.3) */
   --font-sans:  var(--font-space-grotesk), system-ui, sans-serif;
@@ -42,7 +44,17 @@
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  /* Izinkan transisi sangat pendek untuk feedback interaktif (bukan gerak dekoratif) */
+  button,
+  [role="button"],
+  a,
+  input,
+  select,
+  textarea {
+    transition-duration: 100ms !important;
   }
 }
 

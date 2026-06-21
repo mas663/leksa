@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Card } from "@/lib/cards";
 import { advanceBox } from "@/lib/leitner";
 import Flashcard from "@/components/Flashcard";
+import Spinner from "@/components/Spinner";
 import { markKnown, markWrong } from "./actions";
 
 interface StudyClientProps {
@@ -131,7 +132,7 @@ export default function StudyClient({ cards }: StudyClientProps) {
 
           <Link
             href="/"
-            className="block w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool/90 focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition-colors"
+            className="block w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition"
           >
             Kembali ke beranda
           </Link>
@@ -214,7 +215,7 @@ export default function StudyClient({ cards }: StudyClientProps) {
           type="button"
           onClick={handleMissed}
           disabled={isPending}
-          className="flex-1 rounded-xl border border-line bg-card px-4 py-3.5 font-sans text-sm font-semibold text-ink-soft hover:border-danger/40 hover:text-danger hover:bg-danger/5 focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 focus:ring-offset-field transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 rounded-xl border border-line bg-card px-4 py-3.5 font-sans text-sm font-semibold text-ink-soft hover:border-danger/40 hover:text-danger hover:bg-danger/5 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-danger focus:ring-offset-2 focus:ring-offset-field transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Belum hafal
         </button>
@@ -222,8 +223,9 @@ export default function StudyClient({ cards }: StudyClientProps) {
           type="button"
           onClick={handleKnown}
           disabled={isPending}
-          className="flex-1 rounded-xl bg-cool px-4 py-3.5 font-sans text-sm font-semibold text-white hover:bg-cool/90 focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-field transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 rounded-xl bg-cool px-4 py-3.5 font-sans text-sm font-semibold text-white hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-field transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
+          {isPending && <Spinner />}
           {isPending ? "Menyimpan…" : "Tahu"}
         </button>
       </div>

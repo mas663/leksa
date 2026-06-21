@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Spinner from "@/components/Spinner";
 import { createCard } from "@/app/add/actions";
 
 type Mode = "ai" | "manual";
@@ -119,10 +120,10 @@ export default function CardForm() {
             key={m}
             type="button"
             onClick={() => setMode(m)}
-            className={`flex-1 rounded-lg py-2.5 font-sans text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-cool focus:ring-inset ${
+            className={`flex-1 rounded-lg py-2.5 font-sans text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-cool focus:ring-inset active:scale-[0.97] ${
               mode === m
                 ? "bg-card text-ink shadow-sm"
-                : "text-muted hover:text-ink-soft"
+                : "text-muted hover:text-ink-soft hover:bg-card/60"
             }`}
           >
             {m === "ai" ? "Generate AI" : "Isi Manual"}
@@ -155,8 +156,9 @@ export default function CardForm() {
             type="button"
             onClick={handleGenerate}
             disabled={!fields.word.trim() || isGenerating}
-            className="w-full rounded-lg bg-cool px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-cool/90 focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full rounded-lg bg-cool px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
+            {isGenerating && <Spinner />}
             {isGenerating ? "Membuat kartu…" : "Generate (AI)"}
           </button>
 
@@ -273,9 +275,16 @@ export default function CardForm() {
                   type="button"
                   onClick={handleGenerate}
                   disabled={!fields.word.trim() || isGenerating}
-                  className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline disabled:opacity-40"
+                  className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline disabled:opacity-40 flex items-center gap-1"
                 >
-                  {isGenerating ? "Memuat…" : "↻ Generate ulang"}
+                  {isGenerating ? (
+                    <>
+                      <Spinner size={11} />
+                      <span>Memuat…</span>
+                    </>
+                  ) : (
+                    "↻ Generate ulang"
+                  )}
                 </button>
               </div>
 
@@ -293,8 +302,9 @@ export default function CardForm() {
           <button
             type="submit"
             disabled={!fields.word.trim() || isPending}
-            className="w-full rounded-lg bg-cool px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-cool/90 focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full rounded-lg bg-cool px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
+            {isPending && <Spinner />}
             {isPending ? "Menyimpan…" : "Simpan Kartu"}
           </button>
         </>
