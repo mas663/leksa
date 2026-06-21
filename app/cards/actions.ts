@@ -2,7 +2,7 @@
 
 import { updateCard, deleteCard } from "@/lib/cards";
 import { revalidatePath } from "next/cache";
-import type { Card } from "@/lib/cards";
+import type { Card, WordForms } from "@/lib/cards";
 
 interface CardData {
   word: string;
@@ -11,6 +11,7 @@ interface CardData {
   example_en: string | null;
   example_id: string | null;
   grammar_note: string | null;
+  word_forms?: WordForms;
 }
 
 export async function editCardAction(

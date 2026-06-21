@@ -34,12 +34,30 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const prompt = `Kamu asisten pembuat kartu kosakata bahasa Inggris untuk pelajar Indonesia. Untuk satu kata Inggris yang diberikan, kembalikan HANYA objek JSON valid tanpa teks lain, tanpa markdown, tanpa \`\`\`. Gunakan makna paling umum. Pastikan contoh kalimat natural dan catatan grammar akurat.
+  const input = word.trim();
+  const isPhrase = input.includes(" ");
 
-Kata: "${word.trim()}"
+  const prompt = `Kamu asisten pembuat kartu kosakata bahasa Inggris untuk pelajar Indonesia.
+
+Input dari user: "${input}"
+
+Aturan wajib:
+1. Jika input adalah SATU KATA (bukan frasa):
+   - Ubah ke bentuk dasar/kamus (lemma). Contoh: "running"→"run", "cats"→"cat", "better"→"good", "went"→"go".
+   - ${isPhrase ? "Input ini adalah frasa, lewati aturan lemma." : "Input ini satu kata, terapkan lemma."}
+2. Jika input adalah FRASA (2+ kata, mis. "give up"): JANGAN ubah, simpan apa adanya.
+3. Kapitalkan huruf PERTAMA saja dari kata/frasa final. Contoh: "run"→"Run", "give up"→"Give up".
+4. Field "word" dalam respons = bentuk final (sudah dilemmatisasi jika perlu, sudah dikapitalisasi).
+5. Untuk field "wordForms":
+   - Jika partOfSpeech adalah "verb": kembalikan {"type":"verb","v1":"...","v2":"...","v3":"..."} (V1=infinitif, V2=past tense, V3=past participle), SEMUA huruf kecil.
+   - Jika partOfSpeech adalah "noun": kembalikan {"type":"noun","singular":"...","plural":"..."}, SEMUA huruf kecil.
+   - Untuk adjective, adverb, frasa, atau kelas kata lain: kembalikan null.
+6. Gunakan makna paling umum. Contoh kalimat harus natural. Catatan grammar harus akurat.
+
+Kembalikan HANYA objek JSON valid tanpa teks lain, tanpa markdown, tanpa \`\`\`.
 
 Skema JSON wajib (kembalikan persis ini, tanpa kunci tambahan):
-{"translation":"...","partOfSpeech":"...","exampleEN":"...","exampleID":"...","grammarNote":"..."}`;
+{"word":"...","translation":"...","partOfSpeech":"...","exampleEN":"...","exampleID":"...","grammarNote":"...","wordForms":null_atau_objek}`;
 
   try {
     const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {

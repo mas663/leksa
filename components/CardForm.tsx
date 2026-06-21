@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Spinner from "@/components/Spinner";
 import { createCard } from "@/app/add/actions";
+import type { WordForms } from "@/lib/cards";
 
 type Mode = "ai" | "manual";
 
@@ -13,6 +14,7 @@ interface Fields {
   exampleEN: string;
   exampleID: string;
   grammarNote: string;
+  wordForms: WordForms;
 }
 
 const EMPTY: Fields = {
@@ -22,12 +24,21 @@ const EMPTY: Fields = {
   exampleEN: "",
   exampleID: "",
   grammarNote: "",
+  wordForms: null,
 };
 
 const INPUT =
   "w-full rounded-lg border border-line bg-card px-4 py-3 font-sans text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-cool transition-shadow";
+const INPUT_MONO =
+  "w-full rounded-lg border border-line bg-card px-3 py-2.5 font-mono text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-cool transition-shadow";
 const LABEL =
   "block font-mono text-[0.625rem] font-bold uppercase tracking-[0.15em] text-ink mb-2";
+
+function capitalizeFirst(s: string): string {
+  const t = s.trim();
+  if (!t) return s;
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
 
 export default function CardForm() {
   const [mode, setMode] = useState<Mode>("ai");
@@ -39,6 +50,10 @@ export default function CardForm() {
   const [isPending, startTransition] = useTransition();
 
   const showAllFields = mode === "manual" || aiGenerated;
+
+  const posLower = fields.partOfSpeech.toLowerCase().trim();
+  const showVerbForms = /\bverb\b/.test(posLower);
+  const showNounForms = /\bnoun\b/.test(posLower);
 
   const handleGenerate = async () => {
     const trimmedWord = fields.word.trim();
@@ -61,12 +76,13 @@ export default function CardForm() {
       }
 
       setFields((prev) => ({
-        word: prev.word,
+        word: data.word ?? prev.word,
         translation: data.translation ?? "",
         partOfSpeech: data.partOfSpeech ?? "",
         exampleEN: data.exampleEN ?? "",
         exampleID: data.exampleID ?? "",
         grammarNote: data.grammarNote ?? "",
+        wordForms: data.wordForms ?? null,
       }));
       setSource("ai");
       setAiGenerated(true);
@@ -78,11 +94,66 @@ export default function CardForm() {
   };
 
   const updateField =
-    (field: keyof Fields) =>
+    (field: Exclude<keyof Fields, "partOfSpeech" | "wordForms">) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFields((prev) => ({ ...prev, [field]: e.target.value }));
       if (aiGenerated) setSource("manual");
     };
+
+  const handlePartOfSpeechChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFields((prev) => {
+      const pos = value.toLowerCase().trim();
+      const nextIsVerb = /\bverb\b/.test(pos);
+      const nextIsNoun = /\bnoun\b/.test(pos);
+      // Clear wordForms when partOfSpeech switches away from its current type
+      const clearForms =
+        (prev.wordForms?.type === "verb" && !nextIsVerb) ||
+        (prev.wordForms?.type === "noun" && !nextIsNoun);
+      return { ...prev, partOfSpeech: value, wordForms: clearForms ? null : prev.wordForms };
+    });
+    if (aiGenerated) setSource("manual");
+  };
+
+  const updateVerbForm =
+    (key: "v1" | "v2" | "v3") =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setFields((prev) => ({
+        ...prev,
+        wordForms: {
+          type: "verb",
+          v1: prev.wordForms?.type === "verb" ? prev.wordForms.v1 : "",
+          v2: prev.wordForms?.type === "verb" ? prev.wordForms.v2 : "",
+          v3: prev.wordForms?.type === "verb" ? prev.wordForms.v3 : "",
+          [key]: value,
+        },
+      }));
+      if (aiGenerated) setSource("manual");
+    };
+
+  const updateNounForm =
+    (key: "singular" | "plural") =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setFields((prev) => ({
+        ...prev,
+        wordForms: {
+          type: "noun",
+          singular: prev.wordForms?.type === "noun" ? prev.wordForms.singular : "",
+          plural: prev.wordForms?.type === "noun" ? prev.wordForms.plural : "",
+          [key]: value,
+        },
+      }));
+      if (aiGenerated) setSource("manual");
+    };
+
+  const handleWordBlur = () => {
+    setFields((prev) => {
+      const capitalized = capitalizeFirst(prev.word);
+      return capitalized !== prev.word ? { ...prev, word: capitalized } : prev;
+    });
+  };
 
   // Guard: in AI mode, only allow save after generation has run
   const canSave = mode === "manual" || aiGenerated;
@@ -90,13 +161,31 @@ export default function CardForm() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!canSave) return;
+
+    // Capitalize word as fallback (in case blur didn't fire)
+    const finalWord = capitalizeFirst(fields.word);
+
+    // Trim word form values and discard if all empty
+    let finalWordForms: WordForms = null;
+    if (fields.wordForms?.type === "verb") {
+      const v1 = fields.wordForms.v1.trim();
+      const v2 = fields.wordForms.v2.trim();
+      const v3 = fields.wordForms.v3.trim();
+      if (v1 || v2 || v3) finalWordForms = { type: "verb", v1, v2, v3 };
+    } else if (fields.wordForms?.type === "noun") {
+      const singular = fields.wordForms.singular.trim();
+      const plural = fields.wordForms.plural.trim();
+      if (singular || plural) finalWordForms = { type: "noun", singular, plural };
+    }
+
     const fd = new FormData();
-    fd.set("word", fields.word.trim());
+    fd.set("word", finalWord);
     fd.set("translation", fields.translation);
     fd.set("part_of_speech", fields.partOfSpeech);
     fd.set("example_en", fields.exampleEN);
     fd.set("example_id", fields.exampleID);
     fd.set("grammar_note", fields.grammarNote);
+    fd.set("word_forms", finalWordForms ? JSON.stringify(finalWordForms) : "");
     fd.set("source", source);
     startTransition(() => {
       createCard(fd);
@@ -110,6 +199,12 @@ export default function CardForm() {
       handleGenerate();
     }
   };
+
+  const verbV1 = fields.wordForms?.type === "verb" ? fields.wordForms.v1 : "";
+  const verbV2 = fields.wordForms?.type === "verb" ? fields.wordForms.v2 : "";
+  const verbV3 = fields.wordForms?.type === "verb" ? fields.wordForms.v3 : "";
+  const nounSingular = fields.wordForms?.type === "noun" ? fields.wordForms.singular : "";
+  const nounPlural = fields.wordForms?.type === "noun" ? fields.wordForms.plural : "";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -143,6 +238,7 @@ export default function CardForm() {
           autoFocus
           value={fields.word}
           onChange={updateField("word")}
+          onBlur={handleWordBlur}
           onKeyDown={handleWordKeyDown}
           placeholder="mis. ephemeral"
           className={INPUT}
@@ -219,11 +315,94 @@ export default function CardForm() {
               id="partOfSpeech"
               type="text"
               value={fields.partOfSpeech}
-              onChange={updateField("partOfSpeech")}
+              onChange={handlePartOfSpeechChange}
               placeholder="mis. adjective"
               className={INPUT}
             />
           </div>
+
+          {/* Verb forms — muncul saat kelas kata mengandung "verb" */}
+          {showVerbForms && (
+            <div>
+              <p className={LABEL}>
+                Bentuk kata
+                <span className="font-mono text-[0.5625rem] text-muted ml-1.5 normal-case tracking-normal font-normal">
+                  V1 · V2 · V3
+                </span>
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <input
+                    type="text"
+                    value={verbV1}
+                    onChange={updateVerbForm("v1")}
+                    placeholder="run"
+                    aria-label="V1 — infinitif"
+                    className={INPUT_MONO}
+                  />
+                  <p className="font-mono text-[0.5rem] text-muted mt-1 text-center uppercase tracking-[0.12em]">V1</p>
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    value={verbV2}
+                    onChange={updateVerbForm("v2")}
+                    placeholder="ran"
+                    aria-label="V2 — past tense"
+                    className={INPUT_MONO}
+                  />
+                  <p className="font-mono text-[0.5rem] text-muted mt-1 text-center uppercase tracking-[0.12em]">V2</p>
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    value={verbV3}
+                    onChange={updateVerbForm("v3")}
+                    placeholder="run"
+                    aria-label="V3 — past participle"
+                    className={INPUT_MONO}
+                  />
+                  <p className="font-mono text-[0.5rem] text-muted mt-1 text-center uppercase tracking-[0.12em]">V3</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Noun forms — muncul saat kelas kata mengandung "noun" */}
+          {showNounForms && (
+            <div>
+              <p className={LABEL}>
+                Bentuk kata
+                <span className="font-mono text-[0.5625rem] text-muted ml-1.5 normal-case tracking-normal font-normal">
+                  tunggal · jamak
+                </span>
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <input
+                    type="text"
+                    value={nounSingular}
+                    onChange={updateNounForm("singular")}
+                    placeholder="cat"
+                    aria-label="Tunggal (singular)"
+                    className={INPUT_MONO}
+                  />
+                  <p className="font-mono text-[0.5rem] text-muted mt-1 text-center uppercase tracking-[0.12em]">Tunggal</p>
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    value={nounPlural}
+                    onChange={updateNounForm("plural")}
+                    placeholder="cats"
+                    aria-label="Jamak (plural)"
+                    className={INPUT_MONO}
+                  />
+                  <p className="font-mono text-[0.5rem] text-muted mt-1 text-center uppercase tracking-[0.12em]">Jamak</p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div>
             <label htmlFor="exampleEN" className={LABEL}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useMemo, useEffect, useRef } from "react";
-import type { Card } from "@/lib/cards";
+import type { Card, WordForms } from "@/lib/cards";
 import Spinner from "@/components/Spinner";
 import { editCardAction, regenCardAction, deleteCardAction } from "./actions";
 
@@ -203,6 +203,29 @@ function EditDialog({ card, fields, isPending, onChange, onSave, onClose }: Edit
           />
         </div>
 
+        {card.word_forms && (
+          <div className="rounded-lg border border-line bg-field px-4 py-3 space-y-1">
+            <p className={LABEL}>Bentuk kata</p>
+            {card.word_forms.type === "verb" ? (
+              <p className="font-mono text-sm text-ink-soft">
+                {card.word_forms.v1}
+                <span className="text-muted"> · </span>
+                {card.word_forms.v2}
+                <span className="text-muted"> · </span>
+                {card.word_forms.v3}
+                <span className="font-mono text-[0.5625rem] text-muted ml-2">V1 · V2 · V3</span>
+              </p>
+            ) : card.word_forms.type === "noun" ? (
+              <p className="font-mono text-sm text-ink-soft">
+                {card.word_forms.singular}
+                <span className="text-muted"> · </span>
+                {card.word_forms.plural}
+                <span className="font-mono text-[0.5625rem] text-muted ml-2">tunggal · jamak</span>
+              </p>
+            ) : null}
+          </div>
+        )}
+
         <p className="font-mono text-[0.5625rem] text-muted">
           Menyimpan perubahan akan menandai kartu ini sebagai <strong className="text-ink-soft">Manual</strong>.
         </p>
@@ -313,6 +336,15 @@ function CardRow({ card, isRegenLoading, onSpeak, onEdit, onDelete, onRegen }: C
         </div>
         {card.translation && (
           <p className="font-sans text-sm text-ink-soft mt-0.5 leading-snug">{card.translation}</p>
+        )}
+        {card.word_forms && (
+          <p className="font-mono text-[0.5625rem] text-muted mt-0.5">
+            {card.word_forms.type === "verb"
+              ? `Bentuk: ${card.word_forms.v1} · ${card.word_forms.v2} · ${card.word_forms.v3}`
+              : card.word_forms.type === "noun"
+              ? `Bentuk: ${card.word_forms.singular} · ${card.word_forms.plural}`
+              : null}
+          </p>
         )}
         <div className="flex items-center gap-2 mt-2 flex-wrap">
           <span className="font-mono text-[0.5625rem] text-muted tabular-nums">
@@ -429,6 +461,7 @@ export default function CardsClient({ initialCards }: { initialCards: Card[] }) 
         example_en: editFields.exampleEN || null,
         example_id: editFields.exampleID || null,
         grammar_note: editFields.grammarNote || null,
+        word_forms: editCard.word_forms,
       });
       setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
       closeEdit();
@@ -472,12 +505,13 @@ export default function CardsClient({ initialCards }: { initialCards: Card[] }) 
       }
       startTransition(async () => {
         const updated = await regenCardAction(card.id, {
-          word: card.word,
+          word: data.word ?? card.word,
           translation: data.translation ?? null,
           part_of_speech: data.partOfSpeech ?? null,
           example_en: data.exampleEN ?? null,
           example_id: data.exampleID ?? null,
           grammar_note: data.grammarNote ?? null,
+          word_forms: (data.wordForms as WordForms) ?? null,
         });
         setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
         setRegenLoadingId(null);

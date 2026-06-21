@@ -1,5 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 
+export type WordForms =
+  | { type: "verb"; v1: string; v2: string; v3: string }
+  | { type: "noun"; singular: string; plural: string }
+  | null;
+
 export interface Card {
   id: string;
   user_id: string;
@@ -9,6 +14,7 @@ export interface Card {
   example_en: string | null;
   example_id: string | null;
   grammar_note: string | null;
+  word_forms: WordForms;
   source: "ai" | "manual";
   box: number;
   next_review: string;
@@ -27,6 +33,7 @@ export type NewCard = Pick<Card, "word"> &
       | "example_en"
       | "example_id"
       | "grammar_note"
+      | "word_forms"
       | "source"
     >
   >;
@@ -40,6 +47,7 @@ export type CardUpdate = Partial<
     | "example_en"
     | "example_id"
     | "grammar_note"
+    | "word_forms"
     | "source"
     | "box"
     | "next_review"
