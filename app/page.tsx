@@ -76,11 +76,11 @@ export default async function HomePage() {
                 : "Semua kartu sudah diulang. Kembali lagi nanti."
               : `Ada ${due} kartu yang perlu diulang hari ini.`}
           </p>
-          <div>
+          <div className="flex gap-3">
             {due > 0 ? (
               <Link
                 href="/study"
-                className="block w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition"
+                className="flex-1 rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition"
               >
                 Mulai Belajar
               </Link>
@@ -88,11 +88,31 @@ export default async function HomePage() {
               <button
                 disabled
                 aria-disabled="true"
-                className="w-full rounded-xl bg-cool/30 px-4 py-3 font-sans text-sm font-semibold text-white/60 cursor-not-allowed"
+                className="flex-1 rounded-xl bg-cool/30 px-4 py-3 font-sans text-sm font-semibold text-white/60 cursor-not-allowed"
               >
                 Mulai Belajar
               </button>
             )}
+            <Link
+              href="/study/practice"
+              aria-label="Tinjauan Bebas"
+              className="rounded-xl border border-line bg-field px-3.5 py-3 text-muted hover:border-cool/50 hover:text-cool hover:bg-cool/5 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition flex items-center justify-center"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </Link>
           </div>
         </div>
 
