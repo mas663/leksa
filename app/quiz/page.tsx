@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/auth/actions";
 import { redirect } from "next/navigation";
-import { getDueCards } from "@/lib/cards";
+import { getDueCards, getCardCounts } from "@/lib/cards";
 import QuizClient from "./QuizClient";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,10 @@ export default async function QuizPage() {
 
   if (!user) redirect("/login");
 
-  const cards = await getDueCards();
+  const [cards, { total: totalCards }] = await Promise.all([
+    getDueCards(),
+    getCardCounts(),
+  ]);
 
   return (
     <div className="min-h-screen bg-field">
@@ -53,12 +56,14 @@ export default async function QuizPage() {
           <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.15em] mb-1">
             {cards.length > 0
               ? `${cards.length} kartu jatuh tempo`
+              : totalCards === 0
+              ? "Belum ada kartu"
               : "Tidak ada kartu jatuh tempo"}
           </p>
           <h1 className="font-sans text-2xl font-semibold text-ink">Kuis</h1>
         </div>
 
-        <QuizClient cards={cards} />
+        <QuizClient cards={cards} mode="normal" totalCards={totalCards} />
       </main>
     </div>
   );

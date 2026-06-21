@@ -112,6 +112,18 @@ export async function deleteCard(id: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function getCardsForBoxPreview(): Promise<
+  Pick<Card, "id" | "word" | "translation" | "box">[]
+> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("cards")
+    .select("id, word, translation, box")
+    .order("word", { ascending: true });
+  if (error) throw error;
+  return (data ?? []) as Pick<Card, "id" | "word" | "translation" | "box">[];
+}
+
 export async function getCardCounts(): Promise<{
   total: number;
   due: number;

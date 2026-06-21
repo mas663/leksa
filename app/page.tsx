@@ -2,7 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { logout } from "@/app/auth/actions";
 import { redirect } from "next/navigation";
-import { getCardCounts } from "@/lib/cards";
+import { getCardCounts, getCardsForBoxPreview } from "@/lib/cards";
+import LeitnerBoxes from "@/components/LeitnerBoxes";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,16 @@ export default async function HomePage() {
   if (!user) redirect("/login");
 
   const displayName = user.email?.split("@")[0] ?? "Pelajar";
-  const { total, due, byBox } = await getCardCounts();
+  const [{ total, due, byBox }, previewCards] = await Promise.all([
+    getCardCounts(),
+    getCardsForBoxPreview(),
+  ]);
+  const boxCards: Record<number, { id: string; word: string; translation: string | null }[]> = {
+    1: [], 2: [], 3: [], 4: [], 5: [],
+  };
+  for (const c of previewCards) {
+    boxCards[c.box]?.push({ id: c.id, word: c.word, translation: c.translation });
+  }
 
   return (
     <div className="min-h-screen bg-field">
@@ -103,58 +113,104 @@ export default async function HomePage() {
         </div>
 
         {/* Sebaran box Leitner */}
-        <div className="rounded-2xl bg-card border border-line p-5">
-          <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.15em] mb-4">
-            Sebaran Box Leitner
-          </p>
-          <div className="flex gap-2 items-end">
-            {[1, 2, 3, 4, 5].map((box) => {
-              const count = byBox[box] ?? 0;
-              const maxCount = Math.max(...Object.values(byBox), 1);
-              const heightPct = total === 0 ? 0 : Math.round((count / maxCount) * 100);
-              return (
-                <div key={box} className="flex-1 flex flex-col items-center gap-1.5">
-                  <div
-                    className="w-full rounded-lg bg-field border border-line flex items-center justify-center"
-                    style={{ height: `${Math.max(heightPct * 0.72 + 28, 48)}px` }}
-                  >
-                    <span className="font-mono text-sm font-bold text-muted tabular-nums">
-                      {count}
-                    </span>
-                  </div>
-                  <span className="font-mono text-[0.625rem] text-muted">
-                    {box}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <LeitnerBoxes byBox={byBox} total={total} boxCards={boxCards} />
 
         {/* Aksi sekunder */}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           <Link
             href="/add"
-            className="rounded-xl bg-card border border-line px-3 py-4 text-center hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
+            className="rounded-xl bg-card border border-line px-3 py-4 flex flex-col items-center gap-1.5 hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
           >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-muted group-hover:text-cool transition-colors"
+              aria-hidden="true"
+            >
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
             <span className="font-sans text-sm font-medium text-ink-soft group-hover:text-cool transition-colors">
               Tambah kata
             </span>
           </Link>
           <Link
             href="/quiz"
-            className="rounded-xl bg-card border border-line px-3 py-4 text-center hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
+            className="rounded-xl bg-card border border-line px-3 py-4 flex flex-col items-center gap-1.5 hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
           >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-muted group-hover:text-cool transition-colors"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
             <span className="font-sans text-sm font-medium text-ink-soft group-hover:text-cool transition-colors">
               Kuis
             </span>
           </Link>
           <Link
             href="/cards"
-            className="rounded-xl bg-card border border-line px-3 py-4 text-center hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
+            className="rounded-xl bg-card border border-line px-3 py-4 flex flex-col items-center gap-1.5 hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
           >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-muted group-hover:text-cool transition-colors"
+              aria-hidden="true"
+            >
+              <line x1="8" y1="6" x2="21" y2="6" />
+              <line x1="8" y1="12" x2="21" y2="12" />
+              <line x1="8" y1="18" x2="21" y2="18" />
+              <line x1="3" y1="6" x2="3.01" y2="6" />
+              <line x1="3" y1="12" x2="3.01" y2="12" />
+              <line x1="3" y1="18" x2="3.01" y2="18" />
+            </svg>
             <span className="font-sans text-sm font-medium text-ink-soft group-hover:text-cool transition-colors">
               Kelola kartu
+            </span>
+          </Link>
+          <Link
+            href="/quiz/practice"
+            className="rounded-xl bg-card border border-line px-3 py-4 flex flex-col items-center gap-1.5 hover:border-cool/50 hover:bg-cool/5 focus:outline-none focus:ring-2 focus:ring-cool transition-colors group"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="text-muted group-hover:text-cool transition-colors"
+              aria-hidden="true"
+            >
+              <polygon points="5 3 19 12 5 21 5 3" />
+            </svg>
+            <span className="font-sans text-sm font-medium text-ink-soft group-hover:text-cool transition-colors">
+              Latihan Bebas
             </span>
           </Link>
         </div>

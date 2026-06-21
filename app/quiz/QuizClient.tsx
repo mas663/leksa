@@ -8,6 +8,8 @@ import { markCorrect, markIncorrect } from "./actions";
 
 interface QuizClientProps {
   cards: Card[];
+  mode: "normal" | "practice";
+  totalCards: number;
 }
 
 function getPrompt(card: Card): string {
@@ -16,7 +18,7 @@ function getPrompt(card: Card): string {
   return "(tidak ada terjemahan)";
 }
 
-export default function QuizClient({ cards }: QuizClientProps) {
+export default function QuizClient({ cards, mode, totalCards }: QuizClientProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [input, setInput] = useState("");
   const [phase, setPhase] = useState<"answering" | "feedback">("answering");
@@ -26,26 +28,52 @@ export default function QuizClient({ cards }: QuizClientProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   if (cards.length === 0) {
+    if (totalCards === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
+          <p className="font-sans text-base text-ink-soft">
+            Belum ada kartu sama sekali.
+          </p>
+          <p className="font-sans text-sm text-muted">
+            Tambah kata baru untuk mulai belajar.
+          </p>
+          <Link
+            href="/add"
+            className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
+          >
+            + Tambah kata pertama
+          </Link>
+          <Link
+            href="/"
+            className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-muted hover:text-ink focus:outline-none focus:underline"
+          >
+            ← Beranda
+          </Link>
+        </div>
+      );
+    }
+
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center gap-4">
         <p className="font-sans text-base text-ink-soft">
           Tidak ada kartu jatuh tempo untuk dikuis.
         </p>
         <p className="font-sans text-sm text-muted">
-          Tambah kartu baru atau tunggu hingga interval kartu berlalu.
+          Semua kartu sudah diulang hari ini. Coba latihan bebas atau kembali
+          lagi nanti.
         </p>
         <div className="flex gap-4 mt-2">
           <Link
-            href="/add"
+            href="/quiz/practice"
             className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
           >
-            + Tambah kartu
+            Latihan Bebas →
           </Link>
           <Link
             href="/study"
             className="font-mono text-[0.625rem] uppercase tracking-[0.15em] text-cool hover:underline focus:outline-none focus:underline"
           >
-            → Belajar
+            Belajar Flashcard
           </Link>
         </div>
         <Link
@@ -67,13 +95,22 @@ export default function QuizClient({ cards }: QuizClientProps) {
       <div className="flex flex-col items-center justify-center py-8">
         <div className="rounded-2xl bg-card border border-line p-8 w-full">
           <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.15em] mb-3">
-            Kuis selesai
+            {mode === "practice" ? "Latihan selesai" : "Kuis selesai"}
           </p>
           <p className="font-sans text-3xl font-semibold text-ink mb-1">
-            {pct >= 80 ? "Kerja bagus!" : pct >= 50 ? "Terus berlatih!" : "Jangan menyerah!"}
+            {pct >= 80
+              ? "Kerja bagus!"
+              : pct >= 50
+              ? "Terus berlatih!"
+              : "Jangan menyerah!"}
           </p>
           <p className="font-sans text-sm text-ink-soft mb-6 leading-relaxed">
             Kamu menjawab {total} soal — skor {pct}%.
+            {mode === "practice" && (
+              <span className="block mt-1 text-muted text-xs">
+                Mode latihan — progres Leitner tidak berubah.
+              </span>
+            )}
           </p>
 
           <div className="flex gap-6 mb-6">
@@ -95,12 +132,51 @@ export default function QuizClient({ cards }: QuizClientProps) {
             </div>
           </div>
 
-          <Link
-            href="/"
-            className="block w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition"
-          >
-            Kembali ke beranda
-          </Link>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = "/quiz/practice";
+              }}
+              className="flex-1 rounded-xl border border-cool/40 bg-cool/5 px-4 py-3 font-sans text-sm font-semibold text-cool hover:bg-cool/10 active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition flex items-center justify-center gap-2"
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M1 4v6h6" />
+                <path d="M3.51 15a9 9 0 1 0 .49-3.88" />
+              </svg>
+              {mode === "practice" ? "Ulangi Latihan" : "Latihan Lagi"}
+            </button>
+            <Link
+              href="/"
+              className="flex-1 rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white text-center hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition flex items-center justify-center gap-2"
+            >
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              Beranda
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -118,15 +194,23 @@ export default function QuizClient({ cards }: QuizClientProps) {
     setLastResult(isRight ? "correct" : "wrong");
     setPhase("feedback");
 
-    startTransition(async () => {
+    if (mode === "normal") {
+      startTransition(async () => {
+        if (isRight) {
+          await markCorrect(card.id, card.box, card.times_correct);
+          setSession((s) => ({ ...s, correct: s.correct + 1 }));
+        } else {
+          await markIncorrect(card.id, card.times_wrong);
+          setSession((s) => ({ ...s, wrong: s.wrong + 1 }));
+        }
+      });
+    } else {
       if (isRight) {
-        await markCorrect(card.id, card.box, card.times_correct);
         setSession((s) => ({ ...s, correct: s.correct + 1 }));
       } else {
-        await markIncorrect(card.id, card.times_wrong);
         setSession((s) => ({ ...s, wrong: s.wrong + 1 }));
       }
-    });
+    }
   }
 
   function handleNext() {
@@ -155,11 +239,18 @@ export default function QuizClient({ cards }: QuizClientProps) {
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Progress */}
+      {/* Progress + mode badge */}
       <div className="flex items-center justify-between">
-        <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.12em]">
-          {currentIndex + 1} / {cards.length}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.12em]">
+            {currentIndex + 1} / {cards.length}
+          </p>
+          {mode === "practice" && (
+            <span className="inline-flex items-center rounded-full bg-ink/8 px-2 py-0.5 font-mono text-[0.5625rem] text-ink-soft uppercase tracking-[0.08em]">
+              Latihan
+            </span>
+          )}
+        </div>
         <div className="flex gap-3">
           {session.correct > 0 && (
             <span className="font-mono text-[0.625rem] text-reward tabular-nums">
@@ -187,7 +278,8 @@ export default function QuizClient({ cards }: QuizClientProps) {
       >
         {/* Label */}
         <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.15em] mb-3">
-          {card.part_of_speech ? `${card.part_of_speech} · ` : ""}Terjemahkan ke Bahasa Inggris
+          {card.part_of_speech ? `${card.part_of_speech} · ` : ""}Terjemahkan
+          ke Bahasa Inggris
         </p>
 
         {/* Prompt: translation */}
@@ -236,11 +328,39 @@ export default function QuizClient({ cards }: QuizClientProps) {
             <div className="flex items-start gap-3">
               <div
                 className={[
-                  "flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5 text-[0.6875rem] font-bold",
+                  "flex-shrink-0 w-5 h-5 rounded-full flex items-center justify-center mt-0.5",
                   isCorrect ? "bg-reward text-white" : "bg-danger text-white",
                 ].join(" ")}
               >
-                {isCorrect ? "✓" : "✗"}
+                {isCorrect ? (
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    aria-hidden="true"
+                  >
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
+                )}
               </div>
               <div>
                 <p className="font-mono text-[0.625rem] text-muted uppercase tracking-[0.12em] mb-0.5">
@@ -266,14 +386,16 @@ export default function QuizClient({ cards }: QuizClientProps) {
                 <p className="font-sans text-base font-semibold text-ink">
                   {card.word}
                 </p>
-                <p className="font-mono text-[0.6875rem] text-muted mt-0.5">
-                  Box direset ke 1
-                </p>
+                {mode === "normal" && (
+                  <p className="font-mono text-[0.6875rem] text-muted mt-0.5">
+                    Box direset ke 1
+                  </p>
+                )}
               </div>
             )}
 
-            {/* Info naik box saat benar */}
-            {isCorrect && (
+            {/* Info naik box saat benar — hanya mode normal */}
+            {isCorrect && mode === "normal" && (
               <div className="rounded-xl bg-reward/8 border border-reward/20 px-4 py-3">
                 <p className="font-sans text-sm font-semibold text-reward">
                   {card.word}
@@ -291,13 +413,47 @@ export default function QuizClient({ cards }: QuizClientProps) {
               onClick={handleNext}
               onKeyDown={handleNextKeyDown}
               disabled={isPending}
-              className="w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition disabled:opacity-50"
+              className="w-full rounded-xl bg-cool px-4 py-3 font-sans text-sm font-semibold text-white hover:bg-cool-dark active:scale-[0.97] focus:outline-none focus:ring-2 focus:ring-cool focus:ring-offset-2 focus:ring-offset-card transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
-              {isPending
-                ? "Menyimpan…"
-                : currentIndex + 1 < cards.length
-                ? "Lanjut →"
-                : "Lihat hasil"}
+              {isPending ? (
+                "Menyimpan…"
+              ) : currentIndex + 1 < cards.length ? (
+                <>
+                  Lanjut
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </>
+              ) : (
+                <>
+                  Lihat hasil
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                  >
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </>
+              )}
             </button>
           </div>
         )}
